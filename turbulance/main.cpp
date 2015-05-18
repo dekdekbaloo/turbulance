@@ -18,12 +18,12 @@
 #include <GL/glut.h>
 #include <windows.h>
 #endif
-
+#include "Plane.h"
 #include <stdlib.h>
 
-static int slices = 16;
-static int stacks = 16;
-
+static int slices = 10;
+static int stacks = 10;
+static float GRAVITY=9.8f;
 /* GLUT callback Handlers */
 
 static void resize(int width, int height)
@@ -38,23 +38,22 @@ static void resize(int width, int height)
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity() ;
 }
-
+Plane p;
 static void display(void)
 {
     const double t = glutGet(GLUT_ELAPSED_TIME) / 1000.0;
     const double a = t*90.0;
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glColor3d(1,0,0);
-    for(int i=0;i<5000;i++){
+    glColor3d(0,0.5f,0.5f);
         glPushMatrix();
-            glTranslated(i*0.1,i*0.2,-6+0.1*i);
-            glRotated(60,1,0,0);
-            glRotated(a,0,0,1);
+            glTranslated(0.1,0.2,-6);
             glutSolidSphere(0.1,slices,stacks);
         glPopMatrix();
-    }
+        p.draw();
+
     glutSwapBuffers();
+
 }
 
 
@@ -115,7 +114,7 @@ int main(int argc, char *argv[])
     glutKeyboardFunc(key);
     glutIdleFunc(idle);
 
-    glClearColor(1,1,1,1);
+    glClearColor(0,0,0,1);
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
 
@@ -136,6 +135,8 @@ int main(int argc, char *argv[])
     glMaterialfv(GL_FRONT, GL_DIFFUSE,   mat_diffuse);
     glMaterialfv(GL_FRONT, GL_SPECULAR,  mat_specular);
     glMaterialfv(GL_FRONT, GL_SHININESS, high_shininess);
+
+
 
     glutMainLoop();
 
