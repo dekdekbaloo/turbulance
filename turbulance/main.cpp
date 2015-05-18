@@ -17,13 +17,30 @@
 #else
 #include <GL/glut.h>
 #endif
-
+#include <stdarg.h>
 #include <stdlib.h>
+#include <time.h>
+#include <stdio.h>
+#include <string>
+#include <sstream>
+#include <iostream>
 
 static int slices = 16;
 static int stacks = 16;
-
 /* GLUT callback Handlers */
+GLvoid *font_style = GLUT_BITMAP_TIMES_ROMAN_24;
+int window_x;
+int window_y;
+
+//  The number of frames
+int frameCount = 0;
+
+//  Number of frames per second
+float fps = 0;
+
+//  currentTime - previousTime is the time elapsed
+//  between every call of the Idle function
+int currentTime = 0, previousTime = 0;
 
 static void resize(int width, int height)
 {
@@ -38,6 +55,16 @@ static void resize(int width, int height)
     glLoadIdentity() ;
 }
 
+void displayText( float x, float y, float r, float g, float b, const char *string ) {
+	int j = strlen( string );
+
+	glColor3f( r, g, b );
+	glRasterPos2f( x, y );
+	for( int i = 0; i < j; i++ ) {
+		glutBitmapCharacter( GLUT_BITMAP_TIMES_ROMAN_24, string[i] );
+	}
+}
+
 static void display(void)
 {
     const double t = glutGet(GLUT_ELAPSED_TIME) / 1000.0;
@@ -45,21 +72,27 @@ static void display(void)
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glColor3d(1,0,0);
-
+    srand(time(NULL));
+    for(int i = 0; i < 5000; i++)
+    {
     glPushMatrix();
-        glTranslated(-2.4,1.2,-6);
-        glRotated(60,1,0,0);
-        glRotated(a,0,0,1);
-        glutSolidSphere(1,slices,stacks);
+        float j = (float)(rand())/(RAND_MAX)*20-10;
+        //printf("%f\t",j);
+        float k = (float)(rand())/(RAND_MAX)*20-10;
+        //printf("%f\n",k);
+        glTranslated(j,k,-6);
+        //glRotated(60,1,0,0);
+        //glRotated(a,0,0,1);
+        glutSolidSphere(0.05,slices,stacks);
     glPopMatrix();
-
-    glPushMatrix();
-        glTranslated(0,1.2,-6);
-        glRotated(60,1,0,0);
-        glRotated(a,0,0,1);
-        glutSolidCone(1,1,slices,stacks);
-    glPopMatrix();
-
+    }
+    glBegin(GL_QUADS) ;
+         std::ostringstream ostr;
+        ostr << fps;
+        std::string strValue = ostr.str();
+        displayText(0.0f, 0.0f, 0.5f,0.5f,0.5f, strValue.c_str());
+    glEnd() ;
+/*
     glPushMatrix();
         glTranslated(2.4,1.2,-6);
         glRotated(60,1,0,0);
@@ -86,7 +119,7 @@ static void display(void)
         glRotated(60,1,0,0);
         glRotated(a,0,0,1);
         glutWireTorus(0.2,0.8,slices,stacks);
-    glPopMatrix();
+    glPopMatrix();*/
 
     glutSwapBuffers();
 }
@@ -118,8 +151,36 @@ static void key(unsigned char key, int x, int y)
     glutPostRedisplay();
 }
 
+void calculateFPS()
+{
+    //  Increase frame count
+    frameCount++;
+
+    //  Get the number of milliseconds since glutInit called
+    //  (or first call to glutGet(GLUT ELAPSED TIME)).
+    currentTime = glutGet(GLUT_ELAPSED_TIME);
+
+    //  Calculate time passed
+    int timeInterval = currentTime - previousTime;
+
+    if(timeInterval > 2000)
+    {
+        //  calculate the number of frames per second
+        fps = frameCount / (timeInterval / 2000.0f);
+
+        //  Set time
+        previousTime = currentTime;
+
+        //  Reset frame count
+        frameCount = 0;
+        printf("FPS = %f\n",fps);
+    }
+}
 static void idle(void)
 {
+     //  Calculate FPS
+    calculateFPS();
+
     glutPostRedisplay();
 }
 
