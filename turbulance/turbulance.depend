@@ -231,7 +231,18 @@
 	<GL/glu.h>
 	<stdlib.h>
 
+<<<<<<< HEAD
 1431947636 source:d:\aunaun\realtime\turbulance\src\particle.cpp
+=======
+<<<<<<< HEAD
+1431942036 source:/Users/Bank/Desktop/turbulance/turbulance/main.cpp
+	<GLUT/glut.h>
+	<GL/glut.h>
+	<windows.h>
+	<stdlib.h>
+=======
+1431940904 source:d:\aunaun\realtime\turbulance\src\particle.cpp
+>>>>>>> b6723bfd6d915295c979df6695852cb191610642
 	"Particle.h"
 
 1431947515 d:\aunaun\realtime\turbulance\include\particle.h
@@ -256,4 +267,5 @@
 1431946501 d:\aunaun\realtime\turbulance\include\plane.h
 	"algebra3.h"
 	<GL/glut.h>
+>>>>>>> cd8d8018cae6caf5bb263c001a03488c1e415e81
 
