@@ -12,23 +12,26 @@
  * using the + and - keys.
  */
 
-#ifdef __APPLE__
-#include <GLUT/glut.h>
-#else
-#include <GL/glut.h>
 #include <windows.h>
-#endif
+#include <GL/glut.h>
 #include "Plane.h"
 #include "Particle.h"
 #include <vector>
 #include <stdlib.h>
+#include <map>
+#include <set>
 
-static int slices = 10;
-static int stacks = 10;
+
+static int gridSize = 0.5;
+static int fieldSize = 0.1;
 static float GRAVITY=0.0000098f;
+
+
 int lastTime=0;
 static float dt;
 static vector<Particle> P;
+//static map<pair<int,int> >, set<int> > atomGridData;
+
 
 
 static void init(){
@@ -60,12 +63,29 @@ static void update(){
 
     for(int i=0;i<P.size();i++){
         P[i].v.y-=GRAVITY;
+        int gridX = P[i].gridPos.first;
+        int gridY = P[i].gridPos.second;
+        boolean run = true;
+        while(run)
+        {
+            //SPH
+            //Smoothing Kernel Wpoly6
+
+
+
+
+
+        }
+
+        //Collision checking
         if(P[i].r.y<=-1.4f){
             P[i].r.y=-1.4f;
             P[i].v.y=-1.0f*P[i].v.y;
         }
         P[i].update(dt);
     }
+
+    //for (int i = 0; i < )
 }
 
 static void display(void)
@@ -85,27 +105,6 @@ static void display(void)
 
 static void key(unsigned char key, int x, int y)
 {
-    switch (key)
-    {
-        case 27 :
-        case 'q':
-            exit(0);
-            break;
-
-        case '+':
-            slices++;
-            stacks++;
-            break;
-
-        case '-':
-            if (slices>3 && stacks>3)
-            {
-                slices--;
-                stacks--;
-            }
-            break;
-    }
-
     glutPostRedisplay();
 }
 

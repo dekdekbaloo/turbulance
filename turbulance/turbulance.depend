@@ -8,7 +8,7 @@
 	<vector>
 	<stdlib.h>
 
-1426324528 c:\program files (x86)\codeblocks\mingw\include\gl\glut.h
+1431843240 c:\program files (x86)\codeblocks\mingw\include\gl\glut.h
 	"freeglut_std.h"
 
 1301111162 c:\program files (x86)\codeblocks\mingw\include\windows.h
@@ -215,12 +215,13 @@
 1301111156 c:\program files (x86)\codeblocks\mingw\include\oleidl.h
 	<objfwd.h>
 
-1424072408 c:\program files (x86)\codeblocks\mingw\include\gl\gl.h
+1301111164 c:\program files (x86)\codeblocks\mingw\include\gl\gl.h
 
-1424072408 c:\program files (x86)\codeblocks\mingw\include\gl\glu.h
+1301111164 c:\program files (x86)\codeblocks\mingw\include\gl\glu.h
+	<stddef.h>
 	<GL/gl.h>
 
-1426324528 c:\program files (x86)\codeblocks\mingw\include\gl\freeglut_std.h
+1431843239 c:\program files (x86)\codeblocks\mingw\include\gl\freeglut_std.h
 	<windows.h>
 	<EGL/egl.h>
 	<GLES/gl.h>
@@ -231,18 +232,19 @@
 	<GL/glu.h>
 	<stdlib.h>
 
-<<<<<<< HEAD
-1431947636 source:d:\aunaun\realtime\turbulance\src\particle.cpp
-=======
-<<<<<<< HEAD
+1431947636 D
+
+1431940904 source:d:\aunaun\realtime\turbulance\src\particle.cpp
+
 1431942036 source:/Users/Bank/Desktop/turbulance/turbulance/main.cpp
 	<GLUT/glut.h>
 	<GL/glut.h>
 	<windows.h>
 	<stdlib.h>
-=======
-1431940904 source:d:\aunaun\realtime\turbulance\src\particle.cpp
->>>>>>> b6723bfd6d915295c979df6695852cb191610642
+
+1431942036 
+
+1431940904 23bfd6d915295c979df6695852cb191610642
 	"Particle.h"
 
 1431947515 d:\aunaun\realtime\turbulance\include\particle.h
@@ -267,5 +269,22 @@
 1431946501 d:\aunaun\realtime\turbulance\include\plane.h
 	"algebra3.h"
 	<GL/glut.h>
->>>>>>> cd8d8018cae6caf5bb263c001a03488c1e415e81
+
+1431946501 d8018cae6caf5bb263c001a03488c1e415e81
+
+1431955172 source:c:\users\asus\desktop\m\cg homework\project\turbulance\main.cpp
+	<windows.h>
+	<GL/glut.h>
+	"Plane.h"
+	"Particle.h"
+	<vector>
+	<stdlib.h>
+	<map>
+	<set>
+
+1431949068 source:c:\users\asus\desktop\m\cg homework\project\turbulance\src\particle.cpp
+	"Particle.h"
+
+1431949068 source:c:\users\asus\desktop\m\cg homework\project\turbulance\src\plane.cpp
+	"Plane.h"
 

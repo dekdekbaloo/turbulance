@@ -25,6 +25,7 @@
 #include <assert.h>
 #include <math.h>
 
+
 // this line defines a new type: pointer to a function which returns a
 // float and takes as argument a float
 typedef float (*V_FCT_PTR)(float);

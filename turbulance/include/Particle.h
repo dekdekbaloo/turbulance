@@ -11,6 +11,7 @@ class Particle
         vec3 r;
         vec3 v;
         float m;
+        pair<int,int> gridPos;
         Particle(vec3 position,float mass);
         virtual ~Particle();
         void draw(){
