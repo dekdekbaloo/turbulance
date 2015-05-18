@@ -12,8 +12,8 @@ class Particle
         vec3 v;
         float m;
         pair<int,int> gridPos;
-        Particle(vec3 position,float mass);
-        virtual ~Particle();
+        Particle(vec3 position,float mass) : r(position) , m(mass) {}
+        //virtual ~Particle();
         void draw(){
             glColor3d(0,0.5f,0.5f);
             glPushMatrix();

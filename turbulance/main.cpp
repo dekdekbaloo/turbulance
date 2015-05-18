@@ -14,8 +14,8 @@
 
 #include <windows.h>
 #include <GL/glut.h>
-#include "Plane.h"
-#include "Particle.h"
+#include "include/Plane.h"
+#include "include/Particle.h"
 #include <vector>
 #include <stdlib.h>
 #include <map>
@@ -30,6 +30,7 @@ static float GRAVITY=0.0000098f;
 int lastTime=0;
 static float dt;
 static vector<Particle> P;
+Plane plane;
 //static map<pair<int,int> >, set<int> > atomGridData;
 
 
@@ -55,7 +56,7 @@ static void resize(int width, int height)
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity() ;
 }
-Plane plane;
+
 static void update(){
     int currTime=glutGet(GLUT_ELAPSED_TIME);
     dt=(currTime-lastTime);
@@ -66,7 +67,7 @@ static void update(){
         int gridX = P[i].gridPos.first;
         int gridY = P[i].gridPos.second;
         boolean run = true;
-        while(run)
+        while(!run)
         {
             //SPH
             //Smoothing Kernel Wpoly6

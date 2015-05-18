@@ -8,8 +8,8 @@ class Plane
     private:
         vec3 n;
     public:
-        Plane();
-        virtual ~Plane();
+        Plane(){}
+        virtual ~Plane(){}
         void draw(){
             glColor3f(1,1,1);
             glBegin(GL_QUADS); //Begin quadrilateral coordinates
