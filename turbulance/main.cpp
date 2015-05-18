@@ -19,11 +19,25 @@
 #include <windows.h>
 #endif
 #include "Plane.h"
+#include "Particle.h"
+#include <vector>
 #include <stdlib.h>
 
 static int slices = 10;
 static int stacks = 10;
-static float GRAVITY=9.8f;
+static float GRAVITY=0.0000098f;
+int lastTime=0;
+static float dt;
+static vector<Particle> P;
+
+
+static void init(){
+    for(int i=0;i<10;i++){
+        P.push_back(Particle(vec3 (0.2*i,-1+0.2*i,-6+0.2*i),1));
+    }
+}
+
+
 /* GLUT callback Handlers */
 
 static void resize(int width, int height)
@@ -38,19 +52,31 @@ static void resize(int width, int height)
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity() ;
 }
-Plane p;
+Plane plane;
+static void update(){
+    int currTime=glutGet(GLUT_ELAPSED_TIME);
+    dt=(currTime-lastTime);
+    lastTime=currTime;
+
+    for(int i=0;i<P.size();i++){
+        P[i].v.y-=GRAVITY;
+        if(P[i].r.y<=-1.4f){
+            P[i].r.y=-1.4f;
+            P[i].v.y=-1.0f*P[i].v.y;
+        }
+        P[i].update(dt);
+    }
+}
+
 static void display(void)
 {
-    const double t = glutGet(GLUT_ELAPSED_TIME) / 1000.0;
-    const double a = t*90.0;
-
+    update();
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glColor3d(0,0.5f,0.5f);
-        glPushMatrix();
-            glTranslated(0.1,0.2,-6);
-            glutSolidSphere(0.1,slices,stacks);
-        glPopMatrix();
-        p.draw();
+
+        for(int i=0;i<P.size();i++){
+            P[i].draw();
+        }
+        plane.draw();
 
     glutSwapBuffers();
 
@@ -137,7 +163,7 @@ int main(int argc, char *argv[])
     glMaterialfv(GL_FRONT, GL_SHININESS, high_shininess);
 
 
-
+    init();
     glutMainLoop();
 
     return EXIT_SUCCESS;
