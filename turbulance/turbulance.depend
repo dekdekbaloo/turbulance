@@ -1,8 +1,9 @@
 # depslib dependency file v1.0
-1431940399 source:d:\aunaun\realtime\turbulance\main.cpp
+1431944806 source:d:\aunaun\realtime\turbulance\main.cpp
 	<GLUT/glut.h>
 	<GL/glut.h>
 	<windows.h>
+	"Plane.h"
 	<stdlib.h>
 
 1426324528 c:\program files (x86)\codeblocks\mingw\include\gl\glut.h
@@ -227,4 +228,30 @@
 	<GL/gl.h>
 	<GL/glu.h>
 	<stdlib.h>
+
+1431940904 source:d:\aunaun\realtime\turbulance\src\particle.cpp
+	"Particle.h"
+
+1431945032 d:\aunaun\realtime\turbulance\include\particle.h
+	"algebra3.h"
+	<GL/glut.h>
+
+1431939388 d:\aunaun\realtime\turbulance\include\algebra3.h
+	<stdlib.h>
+	<assert.h>
+	<math.h>
+	<iostream>
+
+1341010370 c:\program files (x86)\codeblocks\mingw\include\assert.h
+	<_mingw.h>
+
+1341010374 c:\program files (x86)\codeblocks\mingw\include\math.h
+	<_mingw.h>
+
+1431944356 source:d:\aunaun\realtime\turbulance\src\plane.cpp
+	"Plane.h"
+
+1431944836 d:\aunaun\realtime\turbulance\include\plane.h
+	"algebra3.h"
+	<GL/glut.h>
 
