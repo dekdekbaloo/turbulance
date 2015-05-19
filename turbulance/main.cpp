@@ -28,24 +28,23 @@
 #define SCALE 0.00001f
 #define K_GAS 0.082057f
 static int gridSize = 0.5;
-static int fieldSize = 0.1;
-static float GRAVITY = -9.8f ;
+static float GRAVITY = -1.8f ;
 static int numBall = 200 ;
 
 int lastTime=0;
 static float dt;
 static vector<Particle> P;
 Plane plane;
-//static map<pair<int,int> >, set<int> > atomGridData;
+static map< pair<int,int> , set<int> > atomGridData;
 
 
 
 static void init(){
     // Create Particle
     for(int i=0;i<numBall;i++){
-        int kx = rand()%100 ;
-        int ky = rand()%100 ;
-        Particle part(vec3 (-1.0+0.05*kx,1-0.005*ky,-10),5) ;
+        int kx = rand()%500 ;
+        int ky = rand()%500 ;
+        Particle part(vec3 (0.3+0.003*kx,0.1+0.025*ky,5),1) ;
         //Particle part(vec3 (-2,0,-6),1) ;
         //part.v.z = rand()%100/100000.0 ;
         part.v = vec3 (0,0,0);
@@ -74,16 +73,16 @@ static float calculateDensity(Particle p , int index){
 
 }
 static vec3 calculatePressureForce(Particle p , Particle q){
-    float pressure = 2*q.density;
+    float pressure = 2*K_GAS*q.density;
     vec3 f_pressure = q.m*(pressure)/(2*q.density) * wGradientSpikyKernel(p.r ,q.r) ;
-    //printf("Viscosity : %f %f %f \n",f_viscosity.x,f_viscosity.y,f_viscosity.z);
+
     return f_pressure ;
 }
 static vec3 calculatePressureTotal(Particle p ,int index){
-    vec3 total ;
+    vec3 total(0.0f,0.0f,0.0f) ;
     for(int i=0;i<P.size();i++){
         if(i == index) continue ;
-        total +=  calculatePressureForce(p,P[i]) ;
+        total +=  calculatePressureForce(p,P[i]);
     }
     return total ;
 }
@@ -93,7 +92,7 @@ static vec3 calculateViscosity(Particle p , Particle q){
     return f_viscosity ;
 }
 static vec3 calculateViscosityTotal(Particle p ,int index){
-    vec3 total ;
+    vec3 total(0.0f,0.0f,0.0f) ;
     for(int i=0;i<P.size();i++){
         if(i == index) continue ;
         total +=  calculateViscosity(p,P[i]) ;
@@ -122,25 +121,29 @@ static void update(){
             //Viscosity
         f_viscosity = calculateViscosityTotal(P[i] , i);
         f_pressure = calculatePressureTotal(P[i] , i);
-        total_a = f_viscosity / WATER_DENSITY ;
+         //printf("P : %f %f %f \n",f_pressure.x,f_pressure.y,f_pressure.z);
+        total_a = (f_viscosity + f_pressure) / WATER_DENSITY ;
         break ;
         }
-       // printf("index : %d acc = %.12f\n",i,f_viscosity.length());
-       // printf("Acc x = %.5f , y = %.5f ,z = %.5f \n\n",total_a.x,total_a.y,total_a.z);
+
+        // printf("index : %d acc = %.12f\n",i,f_viscosity.length());
+        // printf("Acc x = %.5f , y = %.5f ,z = %.5f \n",total_a.x,total_a.y,total_a.z);
         P[i].v = P[i].v + total_a*dt/1000;
         P[i].v.y += GRAVITY*dt/1000;
-        //Collision checking
+        P[i].update(dt);
+
+                //Collision checking
         if(P[i].r.y<=-1.4f){
             P[i].r.y=-1.4f;
-            P[i].v.y = 0;
-            //P[i].v.y=-0.7f*P[i].v.y;
+            //P[i].v.y = 0;
+            P[i].v.y=-0.7f*P[i].v.y;
         }
-        if(P[i].r.x<=-1.4f){
-            P[i].r.x=-1.4f;
+        if(P[i].r.x<=-0.0f){
+            P[i].r.x=0.0f;
             P[i].v.x=-0.9f*P[i].v.x;
         }
-        if(P[i].r.x>=1.4f){
-            P[i].r.x=1.4f;
+        if(P[i].r.x>=2.0f){
+            P[i].r.x=2.0f;
             P[i].v.x=-0.9f*P[i].v.x;
         }
 
@@ -152,7 +155,6 @@ static void update(){
             P[i].r.z=-5.0f;
             P[i].v.z=-0.9f*P[i].v.z;
         }
-        P[i].update(dt);
         //printf("Pos x = %.5f , y = %.5f ,z = %.5f ",P[i].r.x,P[i].r.y,P[i].r.z);
     }
 
@@ -179,9 +181,16 @@ static void key(unsigned char key, int x, int y)
     glutPostRedisplay();
 }
 
+int c = 0 ;
 static void idle(void)
 {
     glutPostRedisplay();
+    c++ ;
+    /*if (c == 4 ) {
+        while(1) {
+
+        }
+    }*/
 }
 
 const GLfloat light_ambient[]  = { 0.0f, 0.0f, 0.0f, 1.0f };
