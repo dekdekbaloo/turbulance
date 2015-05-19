@@ -4,7 +4,7 @@
 #include <GL/glut.h>
 
 #define SCALE 0.000001f
-#define WATER_DENSITY  99.80f
+#define WATER_DENSITY  998.8f
 class Particle
 {
     private:
@@ -26,7 +26,7 @@ class Particle
             glPopMatrix();
         }
         void update(int dt){
-            r+=v*dt;
+            r+=v*dt/1000;
         }
 
 };

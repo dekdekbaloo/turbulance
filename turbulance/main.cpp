@@ -26,10 +26,11 @@
 
 #define W_VISCOSITY_CONT 0.000894f
 #define SCALE 0.00001f
+#define K_GAS 0.082057f
 static int gridSize = 0.5;
 static int fieldSize = 0.1;
-static float GRAVITY = -9.8f*SCALE ;
-static int numBall = 200;
+static float GRAVITY = -9.8f ;
+static int numBall = 200 ;
 
 int lastTime=0;
 static float dt;
@@ -42,10 +43,10 @@ Plane plane;
 static void init(){
     // Create Particle
     for(int i=0;i<numBall;i++){
-        Particle part(vec3 (-1.0,-1+0.002*i,-6+0.001*i),5) ;
+        int kx = rand()%100 ;
+        int ky = rand()%100 ;
+        Particle part(vec3 (-1.0+0.05*kx,1-0.005*ky,-10),5) ;
         //Particle part(vec3 (-2,0,-6),1) ;
-        //part.v.x = rand()%100/100000.0 ;
-        //part.v.y = rand()%100/100000.0 ;
         //part.v.z = rand()%100/100000.0 ;
         part.v = vec3 (0,0,0);
 
@@ -69,7 +70,23 @@ static void resize(int width, int height)
     glLoadIdentity() ;
 }
 //Calculate Force
+static float calculateDensity(Particle p , int index){
 
+}
+static vec3 calculatePressureForce(Particle p , Particle q){
+    float pressure = 2*q.density;
+    vec3 f_pressure = q.m*(pressure)/(2*q.density) * wGradientSpikyKernel(p.r ,q.r) ;
+    //printf("Viscosity : %f %f %f \n",f_viscosity.x,f_viscosity.y,f_viscosity.z);
+    return f_pressure ;
+}
+static vec3 calculatePressureTotal(Particle p ,int index){
+    vec3 total ;
+    for(int i=0;i<P.size();i++){
+        if(i == index) continue ;
+        total +=  calculatePressureForce(p,P[i]) ;
+    }
+    return total ;
+}
 static vec3 calculateViscosity(Particle p , Particle q){
     vec3 f_viscosity = q.m*(q.v-p.v)/q.density * wGradient2ViscosityKernel(p.r ,q.r) ;
     //printf("Viscosity : %f %f %f \n",f_viscosity.x,f_viscosity.y,f_viscosity.z);
@@ -104,12 +121,14 @@ static void update(){
             //Smoothing Kernel Wpoly6
             //Viscosity
         f_viscosity = calculateViscosityTotal(P[i] , i);
+        f_pressure = calculatePressureTotal(P[i] , i);
         total_a = f_viscosity / WATER_DENSITY ;
         break ;
         }
-        printf("acc = %.12f\n",total_a.length());
-        P[i].v = P[i].v + total_a ;
-        P[i].v.y += GRAVITY;
+       // printf("index : %d acc = %.12f\n",i,f_viscosity.length());
+       // printf("Acc x = %.5f , y = %.5f ,z = %.5f \n\n",total_a.x,total_a.y,total_a.z);
+        P[i].v = P[i].v + total_a*dt/1000;
+        P[i].v.y += GRAVITY*dt/1000;
         //Collision checking
         if(P[i].r.y<=-1.4f){
             P[i].r.y=-1.4f;
@@ -134,7 +153,7 @@ static void update(){
             P[i].v.z=-0.9f*P[i].v.z;
         }
         P[i].update(dt);
-        cout<<P[i].v.x<<endl;
+        //printf("Pos x = %.5f , y = %.5f ,z = %.5f ",P[i].r.x,P[i].r.y,P[i].r.z);
     }
 
     //for (int i = 0; i < )
@@ -181,7 +200,7 @@ int main(int argc, char *argv[])
 {
     glutInit(&argc, argv);
     glutInitWindowSize(640,480);
-    glutInitWindowPosition(10,10);
+    glutInitWindowPosition(0,0);
     glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
 
     glutCreateWindow("GLUT Shapes");
