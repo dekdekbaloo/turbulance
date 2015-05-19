@@ -45,6 +45,7 @@
 		<Unit filename="include/Particle.h" />
 		<Unit filename="include/Plane.h" />
 		<Unit filename="include/algebra3.h" />
+		<Unit filename="include/kernel.h" />
 		<Unit filename="main.cpp" />
 		<Extensions>
 			<code_completion />
