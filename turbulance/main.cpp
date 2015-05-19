@@ -24,12 +24,15 @@
 #include <math.h>
 #include <stdio.h>
 
-#define W_VISCOSITY_CONT 0.000894f
+// #define W_VISCOSITY_CONT 0.000894f
+#define W_VISCOSITY_CONT 1.80f
 #define SCALE 0.00001f
 #define K_GAS 0.082057f
+#define K_TENSION 0.0004f
+
 static int gridSize = 0.5;
 static float GRAVITY = -1.8f ;
-static int numBall = 200 ;
+static int numBall = 300 ;
 
 int lastTime=0;
 static float dt;
@@ -38,13 +41,17 @@ Plane plane;
 static map< pair<int,int> , set<int> > atomGridData;
 
 
-
+static void printVec3(vec3 a , const char *string)
+{
+    printf (string);
+    printf(" : %f %f %f \n",a.x,a.y,a.z);
+}
 static void init(){
     // Create Particle
     for(int i=0;i<numBall;i++){
         int kx = rand()%500 ;
-        int ky = rand()%500 ;
-        Particle part(vec3 (0.3+0.003*kx,0.1+0.025*ky,5),1) ;
+        int ky = rand()%200 ;
+        Particle part(vec3 (0.3+0.003*kx,0.1+0.01*ky,5),1.0) ;
         //Particle part(vec3 (-2,0,-6),1) ;
         //part.v.z = rand()%100/100000.0 ;
         part.v = vec3 (0,0,0);
@@ -69,8 +76,18 @@ static void resize(int width, int height)
     glLoadIdentity() ;
 }
 //Calculate Force
-static float calculateDensity(Particle p , int index){
-
+static vec3 calculateTension(Particle p ,int index){
+    vec3 term1(0.0f,0.0f,0.0f);
+    vec3 term2(0.0f,0.0f,0.0f);
+    for(int i=0;i<P.size();i++)
+    {
+        if(i == index) continue ;
+        term1 += (P[i].m / P[i].density) * wGradient2ViscosityKernel(p.r,P[i].r);
+        term2 += (P[i].m / P[i].density) * wGradientViscosityKernel(p.r,P[i].r);
+    }
+    //printVec3(term1,"Term1");
+    //printVec3(term2,"Term2");
+    return (-K_TENSION * term1.length()) * term2 / (term2.length()+ 0.001f);
 }
 static vec3 calculatePressureForce(Particle p , Particle q){
     float pressure = 2*K_GAS*q.density;
@@ -110,6 +127,7 @@ static void update(){
         vec3 total_a(0.0f,0.0f,0.0f) ;
         vec3 f_viscosity ;
         vec3 f_pressure ;
+        vec3 f_tension ;
 
         int gridX = P[i].gridPos.first;
         int gridY = P[i].gridPos.second;
@@ -121,8 +139,9 @@ static void update(){
             //Viscosity
         f_viscosity = calculateViscosityTotal(P[i] , i);
         f_pressure = calculatePressureTotal(P[i] , i);
-         //printf("P : %f %f %f \n",f_pressure.x,f_pressure.y,f_pressure.z);
-        total_a = (f_viscosity + f_pressure) / WATER_DENSITY ;
+        f_tension = calculateTension(P[i] , i);
+        // printf("Tension : %f %f %f \n",f_tension.x,f_tension.y,f_tension.z);
+        total_a = (f_viscosity + f_pressure  ) / WATER_DENSITY ;
         break ;
         }
 
@@ -135,15 +154,15 @@ static void update(){
                 //Collision checking
         if(P[i].r.y<=-1.4f){
             P[i].r.y=-1.4f;
-            //P[i].v.y = 0;
-            P[i].v.y=-0.7f*P[i].v.y;
+            P[i].v.y = 0;
+            //P[i].v.y=-0.7f*P[i].v.y;
         }
-        if(P[i].r.x<=-0.0f){
-            P[i].r.x=0.0f;
+        if(P[i].r.x<=-1.0f){
+            P[i].r.x=-1.0f;
             P[i].v.x=-0.9f*P[i].v.x;
         }
-        if(P[i].r.x>=2.0f){
-            P[i].r.x=2.0f;
+        if(P[i].r.x>=3.0f){
+            P[i].r.x=3.0f;
             P[i].v.x=-0.9f*P[i].v.x;
         }
 
@@ -151,8 +170,8 @@ static void update(){
             P[i].r.z=-6.0f;
             P[i].v.z=-0.9f*P[i].v.z;
         }
-        if(P[i].r.z>=-5.0f){
-            P[i].r.z=-5.0f;
+        if(P[i].r.z>=-4.0f){
+            P[i].r.z=-4.0f;
             P[i].v.z=-0.9f*P[i].v.z;
         }
         //printf("Pos x = %.5f , y = %.5f ,z = %.5f ",P[i].r.x,P[i].r.y,P[i].r.z);
@@ -185,12 +204,12 @@ int c = 0 ;
 static void idle(void)
 {
     glutPostRedisplay();
-    c++ ;
-    /*if (c == 4 ) {
+    //c++ ;
+    if (c == 2 ) {
         while(1) {
 
         }
-    }*/
+    }
 }
 
 const GLfloat light_ambient[]  = { 0.0f, 0.0f, 0.0f, 1.0f };
