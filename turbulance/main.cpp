@@ -16,16 +16,20 @@
 #include <GL/glut.h>
 #include "include/Plane.h"
 #include "include/Particle.h"
+#include "include/Kernel.h"
 #include <vector>
 #include <stdlib.h>
 #include <map>
 #include <set>
+#include <math.h>
+#include <stdio.h>
 
-
+#define W_VISCOSITY_CONT 0.000894f
+#define SCALE 0.00001f
 static int gridSize = 0.5;
 static int fieldSize = 0.1;
-static float GRAVITY=0.0000098f;
-
+static float GRAVITY = -9.8f*SCALE ;
+static int numBall = 200;
 
 int lastTime=0;
 static float dt;
@@ -36,8 +40,16 @@ Plane plane;
 
 
 static void init(){
-    for(int i=0;i<10;i++){
-        P.push_back(Particle(vec3 (0.2*i,-1+0.2*i,-6+0.2*i),1));
+    // Create Particle
+    for(int i=0;i<numBall;i++){
+        Particle part(vec3 (-1.0,-1+0.002*i,-6+0.001*i),5) ;
+        //Particle part(vec3 (-2,0,-6),1) ;
+        //part.v.x = rand()%100/100000.0 ;
+        //part.v.y = rand()%100/100000.0 ;
+        //part.v.z = rand()%100/100000.0 ;
+        part.v = vec3 (0,0,0);
+
+        P.push_back(part);
     }
 }
 
@@ -56,34 +68,73 @@ static void resize(int width, int height)
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity() ;
 }
+//Calculate Force
 
+static vec3 calculateViscosity(Particle p , Particle q){
+    vec3 f_viscosity = q.m*(q.v-p.v)/q.density * wGradient2ViscosityKernel(p.r ,q.r) ;
+    //printf("Viscosity : %f %f %f \n",f_viscosity.x,f_viscosity.y,f_viscosity.z);
+    return f_viscosity ;
+}
+static vec3 calculateViscosityTotal(Particle p ,int index){
+    vec3 total ;
+    for(int i=0;i<P.size();i++){
+        if(i == index) continue ;
+        total +=  calculateViscosity(p,P[i]) ;
+    }
+
+    //printf("F Viscosity : %f %f %f \n",total.x,total.y,total.z);
+    return W_VISCOSITY_CONT *total ;
+}
 static void update(){
     int currTime=glutGet(GLUT_ELAPSED_TIME);
     dt=(currTime-lastTime);
     lastTime=currTime;
 
     for(int i=0;i<P.size();i++){
-        P[i].v.y-=GRAVITY;
+        vec3 total_a(0.0f,0.0f,0.0f) ;
+        vec3 f_viscosity ;
+        vec3 f_pressure ;
+
         int gridX = P[i].gridPos.first;
         int gridY = P[i].gridPos.second;
         boolean run = true;
-        while(!run)
+       while(run)
         {
             //SPH
             //Smoothing Kernel Wpoly6
-
-
-
-
-
+            //Viscosity
+        f_viscosity = calculateViscosityTotal(P[i] , i);
+        total_a = f_viscosity / WATER_DENSITY ;
+        break ;
         }
-
+        printf("acc = %.12f\n",total_a.length());
+        P[i].v = P[i].v + total_a ;
+        P[i].v.y += GRAVITY;
         //Collision checking
         if(P[i].r.y<=-1.4f){
             P[i].r.y=-1.4f;
-            P[i].v.y=-1.0f*P[i].v.y;
+            P[i].v.y = 0;
+            //P[i].v.y=-0.7f*P[i].v.y;
+        }
+        if(P[i].r.x<=-1.4f){
+            P[i].r.x=-1.4f;
+            P[i].v.x=-0.9f*P[i].v.x;
+        }
+        if(P[i].r.x>=1.4f){
+            P[i].r.x=1.4f;
+            P[i].v.x=-0.9f*P[i].v.x;
+        }
+
+        if(P[i].r.z<=-6.0f){
+            P[i].r.z=-6.0f;
+            P[i].v.z=-0.9f*P[i].v.z;
+        }
+        if(P[i].r.z>=-5.0f){
+            P[i].r.z=-5.0f;
+            P[i].v.z=-0.9f*P[i].v.z;
         }
         P[i].update(dt);
+        cout<<P[i].v.x<<endl;
     }
 
     //for (int i = 0; i < )

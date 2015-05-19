@@ -272,15 +272,18 @@
 
 1431946501 d8018cae6caf5bb263c001a03488c1e415e81
 
-1431967478 source:c:\users\asus\desktop\m\cg homework\project\turbulance\main.cpp
+1432016980 source:c:\users\asus\desktop\m\cg homework\project\turbulance\main.cpp
 	<windows.h>
 	<GL/glut.h>
 	"include/Plane.h"
 	"include/Particle.h"
+	"include/Kernel.h"
 	<vector>
 	<stdlib.h>
 	<map>
 	<set>
+	<math.h>
+	<stdio.h>
 
 1431949068 source:c:\users\asus\desktop\m\cg homework\project\turbulance\src\particle.cpp
 	"Particle.h"
@@ -298,7 +301,23 @@
 	<math.h>
 	<iostream>
 
-1431966256 c:\users\asus\desktop\m\cg homework\project\turbulance\include\particle.h
+1432017005 c:\users\asus\desktop\m\cg homework\project\turbulance\include\particle.h
 	"algebra3.h"
 	<GL/glut.h>
+
+1432013488 c:\users\asus\desktop\m\cg homework\project\turbulance\include\kernel.h
+	"algebra3.h"
+	<GL/glut.h>
+	<cmath>
+	<stdio.h>
+
+1341010376 c:\program files (x86)\codeblocks\mingw\include\stdio.h
+	<_mingw.h>
+	<stddef.h>
+	<stdarg.h>
+	<sys/types.h>
+
+1341010380 c:\program files (x86)\codeblocks\mingw\include\sys\types.h
+	<_mingw.h>
+	<stddef.h>
 

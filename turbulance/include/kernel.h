@@ -3,6 +3,7 @@
 #include "algebra3.h"
 #include <GL/glut.h>
 #include <cmath>
+#include <stdio.h>
 
 #define REST_DENSITY 10000.0f // 1000 kg/m^3
 #define H 1.5f // smoothing radius
@@ -19,7 +20,7 @@ vec3 wGradientPoly6Kernel(vec3 ri, vec3 rj){
 	if ( 0 <= r && r <= H)
         return 315.0f / div * 6 * r * hr_term * hr_term * rv ;
     else
-        return 0.0f ;
+        return vec3(0.0f,0.0f,0.0f) ;
 }
 
 vec3 wGradientSpikyKernel(vec3 ri, vec3 rj){
@@ -31,7 +32,7 @@ vec3 wGradientSpikyKernel(vec3 ri, vec3 rj){
 	if ( 0 <= r && r <= H)
         return ( gradient_magnitude * 1.0f / div )* rv;
     else
-        return 0.0f ;
+        return vec3(0.0f,0.0f,0.0f) ;
 }
 
 vec3 wGradientViscosityKernel(vec3 ri, vec3 rj){
@@ -43,19 +44,22 @@ vec3 wGradientViscosityKernel(vec3 ri, vec3 rj){
 	if ( 0 <= r && r <= H)
         return ( gradient_magnitude * 1.0f / div )* rv;
     else
-        return 0.0f ;
+        return vec3(0.0f,0.0f,0.0f) ;
 }
 
 vec3 wGradient2ViscosityKernel(vec3 ri, vec3 rj){
 	vec3 rv = ri-rj ;
 	float r = rv.length() ;
+	//printf("r = %.12f\n",r);
+	if (r < 0.0000001) return vec3(0.0f,0.0f,0.0f) ; ;
 	float hr_term = - (6*r)/(2*POW_H_3) + (2)/(H*H) + H / (r*r*r) ;
 	float gradient_magnitude = 15.0f / (2* PI * POW_H_3) * hr_term ;
 	float div = (rv.length() + 0.001f);
+   // printf("r : %f hr_term : %f gm : %f \n",r,hr_term,gradient_magnitude);
 	if ( 0 <= r && r <= H)
         return ( gradient_magnitude * 1.0f / div )* rv;
     else
-        return 0.0f ;
+        return vec3(0.0f,0.0f,0.0f) ;
 }
 
 
