@@ -413,12 +413,12 @@ static void update(){
             P[i].v.x=-0.9f*P[i].v.x;
         }
 
-        if(P[i].r.z<= startY){
-            P[i].r.z= startY;
+        if(P[i].r.z<= startZ){
+            P[i].r.z= startZ;
             P[i].v.z=-0.9f*P[i].v.z;
         }
-        if(P[i].r.z>= startY+sizeY){
-            P[i].r.z= startY+sizeY;
+        if(P[i].r.z>= startZ+sizeZ){
+            P[i].r.z= startZ+sizeZ;
             P[i].v.z=-0.9f*P[i].v.z;
         }
         //printf("Pos x = %.5f , y = %.5f ,z = %.5f ",P[i].r.x,P[i].r.y,P[i].r.z);
