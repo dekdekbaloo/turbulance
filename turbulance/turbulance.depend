@@ -1,4 +1,5 @@
 # depslib dependency file v1.0
+<<<<<<< HEAD
 1431946434 source:c:\users\asus\desktop\m\cg homework\project\turbulance\main.cpp
 	<GLUT/glut.h>
 	<GL/glut.h>
@@ -9,10 +10,21 @@
 	<string>
 	<sstream>
 	<iostream>
+=======
+1431948754 source:d:\aunaun\realtime\turbulance\main.cpp
+	<GLUT/glut.h>
+	<GL/glut.h>
+	<windows.h>
+	"Plane.h"
+	"Particle.h"
+	<vector>
+	<stdlib.h>
+>>>>>>> a383ce2c86529ce7be913f09d7d429be3c0eeca7
 
 1431843240 c:\program files (x86)\codeblocks\mingw\include\gl\glut.h
 	"freeglut_std.h"
 
+<<<<<<< HEAD
 1431843239 c:\program files (x86)\codeblocks\mingw\include\gl\freeglut_std.h
 	<windows.h>
 	<EGL/egl.h>
@@ -24,6 +36,8 @@
 	<GL/glu.h>
 	<stdlib.h>
 
+=======
+>>>>>>> a383ce2c86529ce7be913f09d7d429be3c0eeca7
 1301111162 c:\program files (x86)\codeblocks\mingw\include\windows.h
 	<winresrc.h>
 	<stdarg.h>
@@ -234,9 +248,104 @@
 	<stddef.h>
 	<GL/gl.h>
 
+<<<<<<< HEAD
 1341010376 c:\program files (x86)\codeblocks\mingw\include\time.h
 	<_mingw.h>
 	<stddef.h>
+=======
+1431843239 c:\program files (x86)\codeblocks\mingw\include\gl\freeglut_std.h
+	<windows.h>
+	<EGL/egl.h>
+	<GLES/gl.h>
+	<GLES2/gl2.h>
+	<OpenGL/gl.h>
+	<OpenGL/glu.h>
+	<GL/gl.h>
+	<GL/glu.h>
+	<stdlib.h>
+
+1431947636 D
+
+1431940904 source:d:\aunaun\realtime\turbulance\src\particle.cpp
+
+1431942036 source:/Users/Bank/Desktop/turbulance/turbulance/main.cpp
+	<GLUT/glut.h>
+	<GL/glut.h>
+	<windows.h>
+	<stdlib.h>
+
+1431942036 
+
+1431940904 23bfd6d915295c979df6695852cb191610642
+	"Particle.h"
+
+1431947515 d:\aunaun\realtime\turbulance\include\particle.h
+	"algebra3.h"
+	<GL/glut.h>
+
+1431939388 d:\aunaun\realtime\turbulance\include\algebra3.h
+	<stdlib.h>
+	<assert.h>
+	<math.h>
+	<iostream>
+
+1341010370 c:\program files (x86)\codeblocks\mingw\include\assert.h
+	<_mingw.h>
+
+1341010374 c:\program files (x86)\codeblocks\mingw\include\math.h
+	<_mingw.h>
+
+1431944356 source:d:\aunaun\realtime\turbulance\src\plane.cpp
+	"Plane.h"
+
+1431946501 d:\aunaun\realtime\turbulance\include\plane.h
+	"algebra3.h"
+	<GL/glut.h>
+
+1431946501 d8018cae6caf5bb263c001a03488c1e415e81
+
+1432117383 source:c:\users\asus\desktop\m\cg homework\project\turbulance\main.cpp
+	<GL/glew.h>
+	<GL/gl.h>
+	<GL/glu.h>
+	<GL/glut.h>
+	<windows.h>
+	"include/Plane.h"
+	"include/Particle.h"
+	"include/Kernel.h"
+	<vector>
+	<stdlib.h>
+	<map>
+	<set>
+	<math.h>
+	<stdio.h>
+
+1431949068 source:c:\users\asus\desktop\m\cg homework\project\turbulance\src\particle.cpp
+	"Particle.h"
+
+1431949068 source:c:\users\asus\desktop\m\cg homework\project\turbulance\src\plane.cpp
+	"Plane.h"
+
+1432117611 c:\users\asus\desktop\m\cg homework\project\turbulance\include\plane.h
+	"algebra3.h"
+	<GL/glut.h>
+
+1431965443 c:\users\asus\desktop\m\cg homework\project\turbulance\include\algebra3.h
+	<stdlib.h>
+	<assert.h>
+	<math.h>
+	<iostream>
+
+1432117729 c:\users\asus\desktop\m\cg homework\project\turbulance\include\particle.h
+	"algebra3.h"
+	<GL/glut.h>
+
+1432113065 c:\users\asus\desktop\m\cg homework\project\turbulance\include\kernel.h
+	"algebra3.h"
+	<GL/glut.h>
+	<cmath>
+	<stdio.h>
+>>>>>>> a383ce2c86529ce7be913f09d7d429be3c0eeca7
 
 1341010376 c:\program files (x86)\codeblocks\mingw\include\stdio.h
 	<_mingw.h>
@@ -248,3 +357,23 @@
 	<_mingw.h>
 	<stddef.h>
 
+<<<<<<< HEAD
+=======
+1432108956 c:\program files (x86)\codeblocks\mingw\include\gl\glew.h
+	<stddef.h>
+	<inttypes.h>
+	<stdint.h>
+	<inttypes.h>
+	<Availability.h>
+	<OpenGL/glu.h>
+	<GL/glu.h>
+
+1341010372 c:\program files (x86)\codeblocks\mingw\include\inttypes.h
+	<_mingw.h>
+	<stdint.h>
+	<stddef.h>
+
+1341010376 c:\program files (x86)\codeblocks\mingw\include\stdint.h
+	<stddef.h>
+
+>>>>>>> a383ce2c86529ce7be913f09d7d429be3c0eeca7
