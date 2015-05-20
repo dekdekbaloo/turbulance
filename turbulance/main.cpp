@@ -12,7 +12,6 @@
  * using the + and - keys.
  */
 #define GLEW_STATIC
-#include <GL/glew.h>
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <GL/glut.h>
@@ -34,16 +33,15 @@
 #define K_TENSION 0.04f
 #define GLEW_STATIC 50
 
-<<<<<<< HEAD
 static float gridSize = 0.2f;
 static float GRAVITY = -2.5f ;
 static int numBall = 400;
-static float startX = -1.0f;;
-static float sizeX = 4.0f;
+static float startX = -0.5f;;
+static float sizeX = 1.0f;
 static float startY = -1.4f;
 static float sizeY = 3; //Not yet used
 static float startZ = -6.0f;
-static float sizeZ = 2.0f;
+static float sizeZ = 1.0f;
 
 struct CompareVectors
 {
@@ -54,10 +52,6 @@ struct CompareVectors
 };
 
 typedef std::map<vec3, set<int>, CompareVectors> VectorMap;
-=======
-static int gridSize = 0.5;
-static float GRAVITY = -1 ;
-static int numBall = 300 ;
 
 float deltaAngle = 0.0f;
 int buttonState=0;
@@ -66,7 +60,6 @@ int xOrigin = -1;
 GLuint v;
 GLuint f;
 GLuint p;
->>>>>>> 77d933b63789059085416ad0109fc509de9c2ac9
 
 int lastTime=0;
 static float dt;
@@ -74,7 +67,7 @@ static vector<Particle> P;
 Plane plane;
 static VectorMap gridMap;
 
-void set_shaders()
+/*void set_shaders()
 {
 	char *vs=NULL;
 	char *fs=NULL;
@@ -147,7 +140,7 @@ void set_shaders()
 
 	free(vs);
 	free(fs);
-}
+}*/
 /*
 static void set_shaders(){
     std::string vertexSource = "Shader/shader.vs" ;
@@ -259,7 +252,6 @@ static void printVec3(vec3 a , const char *string)
    printf(" : %f %f %f \n",a.x,a.y,a.z);
 }
 static void init(){
-<<<<<<< HEAD
     //Create grid
     for (int i = 0; i < (int)(sizeX/gridSize); i++)
     {
@@ -271,10 +263,6 @@ static void init(){
             }
         }
     }
-
-=======
-    glewInit();
->>>>>>> 77d933b63789059085416ad0109fc509de9c2ac9
     // Create Particle
     for(int i=0;i<numBall;i++){
         int kx = rand()%500 ;
@@ -373,17 +361,10 @@ static void update(){
         vec3 f_pressure ;
         vec3 f_tension ;
 
-<<<<<<< HEAD
         int gridX = P[i].gridPos.x;
         int gridY = P[i].gridPos.y;
         int gridZ = P[i].gridPos.z;
         for(int a = -1; a < 2; a=a+2)
-=======
-        int gridX = P[i].gridPos.first;
-        int gridY = P[i].gridPos.second;
-        bool run = true;
-       while(run)
->>>>>>> 77d933b63789059085416ad0109fc509de9c2ac9
         {
             gridX = gridX + a;
             for (int b = -1; b < 2; b=b+2)
@@ -417,27 +398,27 @@ static void update(){
         gridMap[newGridPos].insert(i);
 
 
-                //Collision checking
-        if(P[i].r.y<=-1.4f){
-            P[i].r.y=-1.4f;
+        //Collision checking
+        if(P[i].r.y<= startY){
+            P[i].r.y= startY;
             //P[i].v.y = 0;
-            P[i].v.y=-0.2f*P[i].v.y;
+            P[i].v.y= -0.2f*P[i].v.y;
         }
-        if(P[i].r.x<=-0.5f){
-            P[i].r.x=-0.5f;
+        if(P[i].r.x<= startX){
+            P[i].r.x= startX;
             P[i].v.x=-0.9f*P[i].v.x;
         }
-        if(P[i].r.x>=0.5f){
-            P[i].r.x=0.5f;
+        if(P[i].r.x>= startX+sizeX){
+            P[i].r.x= startX+sizeX;
             P[i].v.x=-0.9f*P[i].v.x;
         }
 
-        if(P[i].r.z<=-6.0f){
-            P[i].r.z=-6.0f;
+        if(P[i].r.z<= startY){
+            P[i].r.z= startY;
             P[i].v.z=-0.9f*P[i].v.z;
         }
-        if(P[i].r.z>=-5.0f){
-            P[i].r.z=-5.0f;
+        if(P[i].r.z>= startY+sizeY){
+            P[i].r.z= startY+sizeY;
             P[i].v.z=-0.9f*P[i].v.z;
         }
         //printf("Pos x = %.5f , y = %.5f ,z = %.5f ",P[i].r.x,P[i].r.y,P[i].r.z);
@@ -455,7 +436,6 @@ static void display(void)
     // Test Vertex Shader
     glPushMatrix();
 
-	glUseProgram(p);
 	glPointSize(2.0f);
 	glColor3f(0.9f, 0.9f, 1.0f);
 	for(int i=0; i<10; i++)
@@ -587,7 +567,6 @@ int main(int argc, char *argv[])
 
 
     init();
-	set_shaders();
     glutMainLoop();
 
     return EXIT_SUCCESS;
