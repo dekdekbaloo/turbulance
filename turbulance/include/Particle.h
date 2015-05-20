@@ -18,13 +18,13 @@ class Particle
         Particle(vec3 position,float mass) : r(position) , m(mass) {}
         //virtual ~Particle();
         void draw(){
-           glColor3d(0,0.5f,0.5f);
+           glColor3d(0,0.5f-v.length()*0.1f,0.5f);
 
-            /*glPushMatrix();
+            glPushMatrix();
                 glTranslated(r.x,r.y,r.z);
                 glutSolidSphere(0.05f,10,10);
-            glPopMatrix();*/
-
+            glPopMatrix();
+/*
             glPushMatrix();
             glPointSize(1.0f);
 
@@ -34,7 +34,7 @@ class Particle
 			glVertex3f(r.x,r.y,r.z);
             glEnd();
              glPopMatrix();
-
+*/
 
         }
 

@@ -34,13 +34,13 @@
 
 static float gridSize = 0.2f;
 static float GRAVITY = -2.5f ;
-static int numBall = 1500;
+static int numBall = 100;
 static float startX = -0.5f;;
-static float sizeX = 1.0f;
+static float sizeX = 2.0f;
 static float startY = -1.4f;
 static float sizeY = 100; //Not yet used
 static float startZ = -6.0f;
-static float sizeZ = 1.0f;
+static float sizeZ = 2.0f;
 
 struct CompareVectors
 {
@@ -56,10 +56,6 @@ float deltaAngle = 0.0f;
 int buttonState=0;
 int xOrigin = -1;
 
-GLuint v;
-GLuint f;
-GLuint p;
-
 int lastTime=0;
 int test = 0 ;
 static float dt;
@@ -67,185 +63,6 @@ static vector<Particle> P;
 Plane plane;
 static VectorMap gridMap;
 
-/*void set_shaders()
-{
-	char *vs=NULL;
-	char *fs=NULL;
-
-	vs=(char *)malloc(sizeof(char)*10000);
-	fs=(char *)malloc(sizeof(char)*10000);
-	memset(vs, 0, sizeof(char)*10000);
-	memset(fs, 0, sizeof(char)*10000);
-
-	FILE *fp;
-	char c;
-	int count;
-
-	fp=fopen("Shader/shader.vs", "r");
-	count=0;
-	while((c=fgetc(fp)) != EOF)
-	{
-		vs[count]=c;
-		count++;
-	}
-	fclose(fp);
-
-	fp=fopen("Shader/shader.fs", "r");
-	count=0;
-	while((c=fgetc(fp)) != EOF)
-	{
-		fs[count]=c;
-		count++;
-	}
-	fclose(fp);
-
-	v=glCreateShader(GL_VERTEX_SHADER);
-	f=glCreateShader(GL_FRAGMENT_SHADER);
-
-	const char *vv;
-	const char *ff;
-	vv=vs;
-	ff=fs;
-
-	glShaderSource(v, 1, &vv, NULL);
-	glShaderSource(f, 1, &ff, NULL);
-
-	int success;
-
-	glCompileShader(v);
-	glGetShaderiv(v, GL_COMPILE_STATUS, &success);
-	if(!success)
-	{
-		char info_log[5000];
-		glGetShaderInfoLog(v, 5000, NULL, info_log);
-		printf("Error in vertex shader compilation!\n");
-		printf("Info Log: %s\n", info_log);
-	}
-
-	glCompileShader(f);
-	glGetShaderiv(f, GL_COMPILE_STATUS, &success);
-	if(!success)
-	{
-		char info_log[5000];
-		glGetShaderInfoLog(f, 5000, NULL, info_log);
-		printf("Error in fragment shader compilation!\n");
-		printf("Info Log: %s\n", info_log);
-	}
-
-	p=glCreateProgram();
-	glAttachShader(p, v);
-	glAttachShader(p, f);
-	glLinkProgram(p);
-	glUseProgram(p);
-
-	free(vs);
-	free(fs);
-}*/
-/*
-static void set_shaders(){
-    std::string vertexSource = "Shader/shader.vs" ;
-    std::string fragmentSource = "Shader/shader.fs" ;
-    v = glCreateShader(GL_VERTEX_SHADER);
-
-    //Send the vertex shader source code to GL
-    //Note that std::string's .c_str is NULL character terminated.
-    const GLchar *source = (const GLchar *)vertexSource.c_str();
-    glShaderSource(v, 1, &source, 0);
-
-    //Compile the vertex shader
-    glCompileShader(v);
-
-    GLint isCompiled = 0;
-    glGetShaderiv(v, GL_COMPILE_STATUS, &isCompiled);
-    if(isCompiled == GL_FALSE)
-    {
-        GLint maxLength = 0;
-        glGetShaderiv(v, GL_INFO_LOG_LENGTH, &maxLength);
-
-        //The maxLength includes the NULL character
-        std::vector<GLchar> infoLog(maxLength);
-        glGetShaderInfoLog(v, maxLength, &maxLength, &infoLog[0]);
-
-        //We don't need the shader anymore.
-        glDeleteShader(v);
-
-        //Use the infoLog as you see fit.
-        //In this simple program, we'll just leave
-        return;
-    }
-    f = glCreateShader(GL_FRAGMENT_SHADER);
-
-    //Send the fragment shader source code to GL
-    //Note that std::string's .c_str is NULL character terminated.
-    source = (const GLchar *)fragmentSource.c_str();
-    glShaderSource(f, 1, &source, 0);
-
-    //Compile the fragment shader
-    glCompileShader(f);
-
-    glGetShaderiv(f, GL_COMPILE_STATUS, &isCompiled);
-    if(isCompiled == GL_FALSE)
-    {
-        GLint maxLength = 0;
-        glGetShaderiv(f, GL_INFO_LOG_LENGTH, &maxLength);
-
-        //The maxLength includes the NULL character
-        std::vector<GLchar> infoLog(maxLength);
-        glGetShaderInfoLog(f, maxLength, &maxLength, &infoLog[0]);
-
-        //We don't need the shader anymore.
-        glDeleteShader(f);
-        //Either of them. Don't leak shaders.
-        glDeleteShader(v);
-
-        //Use the infoLog as you see fit.
-
-        //In this simple program, we'll just leave
-        return;
-    }else{
-        printf("Ready!");
-    }
-
-    //Vertex and fragment shaders are successfully compiled.
-    //Now time to link them together into a program.
-    //Get a program object.
-    p = glCreateProgram();
-
-    //Attach our shaders to our program
-    glAttachShader(p, v);
-    glAttachShader(p, f);
-
-    //Link our program
-    glLinkProgram(p);
-
-    //Note the different functions here: glGetProgram* instead of glGetShader*.
-    GLint isLinked = 0;
-    glGetProgramiv(p, GL_LINK_STATUS, (int *)&isLinked);
-    if(isLinked == GL_FALSE)
-    {
-        GLint maxLength = 0;
-        glGetProgramiv(p, GL_INFO_LOG_LENGTH, &maxLength);
-
-        //The maxLength includes the NULL character
-        std::vector<GLchar> infoLog(maxLength);
-        glGetProgramInfoLog(p, maxLength, &maxLength, &infoLog[0]);
-
-        //We don't need the program anymore.
-        glDeleteProgram(p);
-        //Don't leak shaders either.
-        glDeleteShader(v);
-        glDeleteShader(f);
-
-        //Use the infoLog as you see fit.
-
-        //In this simple program, we'll just leave
-        return;
-    }
-
-    //Always detach shaders after a successful link.
-    glDetachShader(p, v);
-    glDetachShader(p, f);
-}*/
 static void printVec3(vec3 a , const char *string)
 {
     printf (string);
@@ -258,7 +75,7 @@ static void init(){
         int kx = rand()%500 ;
         int ky = rand()%200 ;
         int kz = rand()%200 ;
-        Particle part(vec3 (0.5+0.003*kx,0.1+0.02*ky,6-0.01*kz),1.0);
+        Particle part(vec3 (0.5+0.003*kx,0.1+0.02*ky,6-0.01*kz),2.0);
 
         //Particle part(vec3 (0.5,0.1,6),1.0);
 
@@ -291,21 +108,6 @@ static void resize(int width, int height)
     glLoadIdentity();
 }
 //Calculate Force
-/*
-//Old Surface
-static vec3 calculateTension(Particle p ,int index){
-    vec3 term1(0.0f,0.0f,0.0f);
-    vec3 term2(0.0f,0.0f,0.0f);
-    for(int i=0;i<P.size();i++)
-    {
-        if(i == index) continue ;
-        term1 += (P[i].m / P[i].density) * wGradient2SpikyKernel(p.r,P[i].r);
-        term2 += (P[i].m / P[i].density) * wGradientSpikyKernel(p.r,P[i].r);
-    }
-    printVec3(term1,"Term1");
-    printVec3(term2,"Term2");
-    return (-K_TENSION * term1.length() / (term2.length()+ 0.001f)) * term2 ;
-}*/
 
 static void update(){
     int currTime=glutGet(GLUT_ELAPSED_TIME);
@@ -383,7 +185,7 @@ static void update(){
         if(P[i].r.y<= startY){
             P[i].r.y= startY;
             //P[i].v.y = 0;
-            P[i].v.y= -0.2f*P[i].v.y;
+            P[i].v.y= -0.4f*P[i].v.y;
         }
         if(P[i].r.x<= startX){
             P[i].r.x= startX;
