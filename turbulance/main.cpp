@@ -25,14 +25,14 @@
 #include <stdio.h>
 
 // #define W_VISCOSITY_CONT 0.000894f
-#define W_VISCOSITY_CONT 1.80f
+#define W_VISCOSITY_CONT 4.0f
 #define SCALE 0.00001f
-#define K_GAS 0.082057f
-#define K_TENSION 0.0004f
+#define K_GAS 0.82057f
+#define K_TENSION 0.4f
 
 static int gridSize = 0.5;
-static float GRAVITY = -1.8f ;
-static int numBall = 300 ;
+static float GRAVITY = -2.5f ;
+static int numBall = 400 ;
 
 int lastTime=0;
 static float dt;
@@ -44,14 +44,15 @@ static map< pair<int,int> , set<int> > atomGridData;
 static void printVec3(vec3 a , const char *string)
 {
     printf (string);
-    printf(" : %f %f %f \n",a.x,a.y,a.z);
+   printf(" : %f %f %f \n",a.x,a.y,a.z);
 }
 static void init(){
     // Create Particle
     for(int i=0;i<numBall;i++){
         int kx = rand()%500 ;
         int ky = rand()%200 ;
-        Particle part(vec3 (0.3+0.003*kx,0.1+0.01*ky,5),1.0) ;
+        int kz = rand()%200 ;
+        Particle part(vec3 (0.5+0.003*kx,0.1+0.02*ky,6-0.01*kz),1.0) ;
         //Particle part(vec3 (-2,0,-6),1) ;
         //part.v.z = rand()%100/100000.0 ;
         part.v = vec3 (0,0,0);
@@ -76,18 +77,30 @@ static void resize(int width, int height)
     glLoadIdentity() ;
 }
 //Calculate Force
+/*
+//Old Surface
 static vec3 calculateTension(Particle p ,int index){
     vec3 term1(0.0f,0.0f,0.0f);
     vec3 term2(0.0f,0.0f,0.0f);
     for(int i=0;i<P.size();i++)
     {
         if(i == index) continue ;
-        term1 += (P[i].m / P[i].density) * wGradient2ViscosityKernel(p.r,P[i].r);
-        term2 += (P[i].m / P[i].density) * wGradientViscosityKernel(p.r,P[i].r);
+        term1 += (P[i].m / P[i].density) * wGradient2SpikyKernel(p.r,P[i].r);
+        term2 += (P[i].m / P[i].density) * wGradientSpikyKernel(p.r,P[i].r);
     }
-    //printVec3(term1,"Term1");
-    //printVec3(term2,"Term2");
-    return (-K_TENSION * term1.length()) * term2 / (term2.length()+ 0.001f);
+    printVec3(term1,"Term1");
+    printVec3(term2,"Term2");
+    return (-K_TENSION * term1.length() / (term2.length()+ 0.001f)) * term2 ;
+}*/
+static vec3 calculateTension(Particle p ,int index){
+    vec3 wr(0.0f,0.0f,0.0f);
+    for(int i=0;i<P.size();i++)
+    {
+        if(i == index) continue ;
+        wr += P[i].m * wGradientSpikyKernel(p.r,P[i].r).length()*(p.r -P[i].r);
+    }
+    //printVec3(wr,"Wr");
+    return (K_TENSION /p.m) *wr ;
 }
 static vec3 calculatePressureForce(Particle p , Particle q){
     float pressure = 2*K_GAS*q.density;
@@ -101,7 +114,7 @@ static vec3 calculatePressureTotal(Particle p ,int index){
         if(i == index) continue ;
         total +=  calculatePressureForce(p,P[i]);
     }
-    return total ;
+    return -total ;
 }
 static vec3 calculateViscosity(Particle p , Particle q){
     vec3 f_viscosity = q.m*(q.v-p.v)/q.density * wGradient2ViscosityKernel(p.r ,q.r) ;
@@ -140,8 +153,9 @@ static void update(){
         f_viscosity = calculateViscosityTotal(P[i] , i);
         f_pressure = calculatePressureTotal(P[i] , i);
         f_tension = calculateTension(P[i] , i);
-        // printf("Tension : %f %f %f \n",f_tension.x,f_tension.y,f_tension.z);
-        total_a = (f_viscosity + f_pressure  ) / WATER_DENSITY ;
+        total_a = (f_viscosity + f_pressure + f_tension  ) / WATER_DENSITY ;
+       // printVec3(f_tension,"Tension");
+      //  printf("A : %f %f %f \n",total_a.x,total_a.y,total_a.z);
         break ;
         }
 
@@ -154,8 +168,8 @@ static void update(){
                 //Collision checking
         if(P[i].r.y<=-1.4f){
             P[i].r.y=-1.4f;
-            P[i].v.y = 0;
-            //P[i].v.y=-0.7f*P[i].v.y;
+            //P[i].v.y = 0;
+            P[i].v.y=-0.2f*P[i].v.y;
         }
         if(P[i].r.x<=-1.0f){
             P[i].r.x=-1.0f;
@@ -205,7 +219,7 @@ static void idle(void)
 {
     glutPostRedisplay();
     //c++ ;
-    if (c == 2 ) {
+    if (c == 5 ) {
         while(1) {
 
         }

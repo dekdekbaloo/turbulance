@@ -272,7 +272,7 @@
 
 1431946501 d8018cae6caf5bb263c001a03488c1e415e81
 
-1432055211 source:c:\users\asus\desktop\m\cg homework\project\turbulance\main.cpp
+1432094199 source:c:\users\asus\desktop\m\cg homework\project\turbulance\main.cpp
 	<windows.h>
 	<GL/glut.h>
 	"include/Plane.h"
@@ -305,7 +305,7 @@
 	"algebra3.h"
 	<GL/glut.h>
 
-1432030897 c:\users\asus\desktop\m\cg homework\project\turbulance\include\kernel.h
+1432094115 c:\users\asus\desktop\m\cg homework\project\turbulance\include\kernel.h
 	"algebra3.h"
 	<GL/glut.h>
 	<cmath>

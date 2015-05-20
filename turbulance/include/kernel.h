@@ -24,6 +24,22 @@ vec3 wGradientPoly6Kernel(vec3 ri, vec3 rj){
         return vec3(0.0f,0.0f,0.0f) ;
 }
 
+vec3 wGradient2SpikyKernel(vec3 ri, vec3 rj){
+	vec3 rv = ri-rj ;
+	//printf("ri : %f %f %f \n",ri.x,ri.y,ri.z);
+	//printf("rj : %f %f %f \n",rj.x,rj.y,rj.z);
+	//printf("rv : %f %f %f \n",rv.x,rv.y,rv.z);
+	float r = rv.length() ;
+	if (r < 0.000001f) return  vec3(0.0f,0.0f,0.0f);
+	float hr_term = H - r;
+	float gradient_magnitude = -90.0f / (PI * POW_H_6) * hr_term;
+	float div = (rv.length() + 0.001f);
+   // printf("r : %f hr_term : %f gm : %f \n",r,hr_term,gradient_magnitude);
+	if ( 0 <= r && r <= H)
+        return ( -gradient_magnitude* 1.0f / div )* rv;
+    else
+        return vec3(0.0f,0.0f,0.0f) ;
+}
 vec3 wGradientSpikyKernel(vec3 ri, vec3 rj){
 	vec3 rv = ri-rj ;
 	//printf("ri : %f %f %f \n",ri.x,ri.y,ri.z);
@@ -40,6 +56,7 @@ vec3 wGradientSpikyKernel(vec3 ri, vec3 rj){
     else
         return vec3(0.0f,0.0f,0.0f) ;
 }
+
 
 vec3 wGradientViscosityKernel(vec3 ri, vec3 rj){
 	vec3 rv = ri-rj ;
