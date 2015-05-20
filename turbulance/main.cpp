@@ -19,6 +19,7 @@
 #include "include/Plane.h"
 #include "include/Particle.h"
 #include "include/Kernel.h"
+#include "include/Collision.h"
 #include <vector>
 #include <stdlib.h>
 #include <map>
@@ -26,7 +27,7 @@
 #include <math.h>
 #include <stdio.h>
 
-// #define W_VISCOSITY_CONT 0.000894f
+ //#define W_VISCOSITY_CONT 0.000894f
 #define W_VISCOSITY_CONT 4.80f
 #define K_GAS 0.082057f
 #define K_TENSION 0.04f
@@ -34,13 +35,15 @@
 
 static float gridSize = 0.2f;
 static float GRAVITY = -2.5f ;
-static int numBall = 1500;
+static int numBall = 10;
 static float startX = -0.5f;;
 static float sizeX = 1.0f;
 static float startY = -1.4f;
 static float sizeY = 100; //Not yet used
 static float startZ = -6.0f;
 static float sizeZ = 1.0f;
+
+static Collision coll;
 
 struct CompareVectors
 {
@@ -380,10 +383,21 @@ static void update(){
         P[i].r+= P[i].v*dt/1000;
 
         //Collision checking
+        /*for(int j=0;j<P.size();j++){
+
+            if(i!=j){
+                if(coll.collide(P[i],P[j])){
+                    coll.resolve(P[i],P[j]);
+                    coll.correction(P[i],P[j]);
+                }
+            }
+        }*/
         if(P[i].r.y<= startY){
             P[i].r.y= startY;
             //P[i].v.y = 0;
             P[i].v.y= -0.2f*P[i].v.y;
+            P[i].v.x*=0.98f;
+            P[i].v.z*=0.98f;
         }
         if(P[i].r.x<= startX){
             P[i].r.x= startX;
@@ -401,6 +415,7 @@ static void update(){
             P[i].r.z= startZ+sizeZ;
             P[i].v.z=-0.9f*P[i].v.z;
         }
+
         //printf("Pos x = %.5f , y = %.5f ,z = %.5f ",P[i].r.x,P[i].r.y,P[i].r.z);
     }
 
@@ -444,6 +459,19 @@ static void display(void)
 
 static void key(unsigned char key, int x, int y)
 {
+    if(key==' '){
+
+        float rx=x/(float)glutGet(GLUT_WINDOW_WIDTH)-0.5f;
+        float ry=-1*(y/(float)glutGet(GLUT_WINDOW_HEIGHT)-0.5f);
+
+        //cout<<rx<<':'<<ry<<endl;
+        Particle part(vec3 (rx*5,ry*5,-5),1.0);
+        part.v = vec3 (0,0,-2);
+        vec3 newGridPos = part.r/gridSize;
+        gridMap[newGridPos].push_back(++numBall);
+
+        P.push_back(part);
+    }
     glutPostRedisplay();
 }
 
@@ -476,8 +504,8 @@ void mouseMove(int x, int y) {
         angle=deltaAngle;
 
 		// update camera's direction
-		lx = sin(angle + deltaAngle);
-		lz = -cos(angle + deltaAngle);
+		lx = sin(deltaAngle);
+		lz = -cos(deltaAngle);
 	}
 	xOrigin=x;
 
@@ -527,7 +555,7 @@ int main(int argc, char *argv[])
     glutKeyboardFunc(key);
     glutIdleFunc(idle);
 
-    glClearColor(0,0,0,1);
+    glClearColor(0,0,0,0);
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
 
@@ -538,6 +566,8 @@ int main(int argc, char *argv[])
     glEnable(GL_NORMALIZE);
     glEnable(GL_COLOR_MATERIAL);
     glEnable(GL_LIGHTING);
+
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); glEnable( GL_BLEND );
 
     glLightfv(GL_LIGHT0, GL_AMBIENT,  light_ambient);
     glLightfv(GL_LIGHT0, GL_DIFFUSE,  light_diffuse);

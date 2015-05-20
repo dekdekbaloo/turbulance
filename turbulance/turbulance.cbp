@@ -14,6 +14,7 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-g" />
+					<Add directory="include" />
 				</Compiler>
 			</Target>
 			<Target title="Release">
@@ -24,6 +25,7 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-O2" />
+					<Add directory="include" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
@@ -42,11 +44,13 @@
 			<Add library="gdi32" />
 			<Add directory="C:/Program Files (x86)/CodeBlocks/MinGW/lib" />
 		</Linker>
+		<Unit filename="include/Collision.h" />
 		<Unit filename="include/Particle.h" />
 		<Unit filename="include/Plane.h" />
 		<Unit filename="include/algebra3.h" />
 		<Unit filename="include/kernel.h" />
 		<Unit filename="main.cpp" />
+		<Unit filename="src/Collision.cpp" />
 		<Extensions>
 			<code_completion />
 			<envvars />
