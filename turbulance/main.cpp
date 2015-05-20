@@ -28,18 +28,17 @@
 
 // #define W_VISCOSITY_CONT 0.000894f
 #define W_VISCOSITY_CONT 4.80f
-#define SCALE 0.00001f
 #define K_GAS 0.082057f
 #define K_TENSION 0.04f
 #define GLEW_STATIC 50
 
 static float gridSize = 0.2f;
 static float GRAVITY = -2.5f ;
-static int numBall = 400;
+static int numBall = 300;
 static float startX = -0.5f;;
 static float sizeX = 1.0f;
 static float startY = -1.4f;
-static float sizeY = 3; //Not yet used
+static float sizeY = 100; //Not yet used
 static float startZ = -6.0f;
 static float sizeZ = 1.0f;
 
@@ -51,7 +50,7 @@ struct CompareVectors
     }
 };
 
-typedef std::map<vec3, set<int>, CompareVectors> VectorMap;
+typedef map<vec3, vector<int>, CompareVectors> VectorMap;
 
 float deltaAngle = 0.0f;
 int buttonState=0;
@@ -259,7 +258,7 @@ static void init(){
         {
             for (int k = 0; k < (int)(sizeZ/gridSize); k++)
             {
-                gridMap[vec3(i,j,k)] = set<int>();
+                gridMap[vec3(i,j,k)] = vector<int>();
             }
         }
     }
@@ -269,9 +268,14 @@ static void init(){
         int ky = rand()%200 ;
         int kz = rand()%200 ;
         Particle part(vec3 (0.5+0.003*kx,0.1+0.02*ky,6-0.01*kz),1.0);
+
+        //Particle part(vec3 (0.5,0.1,6),1.0);
+
         //Particle part(vec3 (-2,0,-6),1) ;
         //part.v.z = rand()%100/100000.0 ;
         part.v = vec3 (0,0,0);
+        vec3 newGridPos = part.r/gridSize;
+        gridMap[newGridPos].push_back(i);
 
         P.push_back(part);
     }
@@ -311,55 +315,28 @@ static vec3 calculateTension(Particle p ,int index){
     printVec3(term2,"Term2");
     return (-K_TENSION * term1.length() / (term2.length()+ 0.001f)) * term2 ;
 }*/
-static vec3 calculateTension(Particle p ,int index){
-    vec3 wr(0.0f,0.0f,0.0f);
-    for(size_t i=0;i<P.size();i++)
-    {
-        if(i == index) continue ;
-        wr += P[i].m * wGradientSpikyKernel(p.r,P[i].r).length()*(p.r -P[i].r);
-    }
-    //printVec3(wr,"Wr");
-    return (K_TENSION /p.m) *wr ;
-}
-static vec3 calculatePressureForce(Particle p , Particle q){
-    float pressure = 2*K_GAS*q.density;
-    vec3 f_pressure = q.m*(pressure)/(2*q.density) * wGradientSpikyKernel(p.r ,q.r) ;
 
-    return f_pressure ;
-}
-static vec3 calculatePressureTotal(Particle p ,int index){
-    vec3 total(0.0f,0.0f,0.0f) ;
-    for(int i=0;i<P.size();i++){
-        if(i == index) continue ;
-        total +=  calculatePressureForce(p,P[i]);
-    }
-    return -total ;
-}
-static vec3 calculateViscosity(Particle p , Particle q){
-    vec3 f_viscosity = q.m*(q.v-p.v)/q.density * wGradient2ViscosityKernel(p.r ,q.r) ;
-    //printf("Viscosity : %f %f %f \n",f_viscosity.x,f_viscosity.y,f_viscosity.z);
-    return f_viscosity ;
-}
-static vec3 calculateViscosityTotal(Particle p ,int index){
-    vec3 total(0.0f,0.0f,0.0f) ;
-    for(int i=0;i<P.size();i++){
-        if(i == index) continue ;
-        total +=  calculateViscosity(p,P[i]) ;
-    }
-
-    //printf("F Viscosity : %f %f %f \n",total.x,total.y,total.z);
-    return W_VISCOSITY_CONT *total ;
-}
 static void update(){
     int currTime=glutGet(GLUT_ELAPSED_TIME);
     dt=(currTime-lastTime);
     lastTime=currTime;
 
+    for(map<vec3, vector<int>, CompareVectors>::iterator it1 = gridMap.begin(); it1 != gridMap.end(); it1++)
+    {
+        it1->second.clear();
+    }
+
+    for(int i = 0; i < P.size();i++)
+    {
+        vec3 newGridPos = P[i].r/gridSize;
+        gridMap[newGridPos].push_back(i);
+    }
+
     for(int i=0;i<P.size();i++){
         vec3 total_a(0.0f,0.0f,0.0f) ;
-        vec3 f_viscosity ;
-        vec3 f_pressure ;
-        vec3 f_tension ;
+        vec3 f_viscosity(0.0f,0.0f,0.0f);
+        vec3 f_pressure(0.0f,0.0f,0.0f);
+        vec3 f_tension(0.0f,0.0f,0.0f);
 
         int gridX = P[i].gridPos.x;
         int gridY = P[i].gridPos.y;
@@ -367,22 +344,39 @@ static void update(){
         for(int a = -1; a < 2; a=a+2)
         {
             gridX = gridX + a;
+            if (gridX < 0) continue;
             for (int b = -1; b < 2; b=b+2)
             {
                 gridY = gridY + b;
+                if (gridY < 0) continue;
                 for (int c = -1; c < 2; c=c+2)
                 {
                     gridZ = gridZ + c;
-                    if (gridX < 0 || gridY < 0 || gridZ < 0) break;
+                    if (gridZ < 0) continue;
+                    vec3 gridKey = vec3(gridX,gridY,gridZ);
+
+                    //cout << gridKey.x << " " << gridKey.y << " " << gridKey.z << endl;
+
+                    //SPH
+                    //Smoothing Kernel Wpoly6
+                    //Viscosity
+                    for (vector<int>::iterator it = gridMap[gridKey].begin(); it != gridMap[gridKey].end(); it++)
+                    {
+                        if(i == *it){}
+                        else
+                        {
+                            f_viscosity +=  P[*it].m*(P[*it].v-P[i].v)/P[*it].density * wGradient2ViscosityKernel(P[i].r ,P[*it].r) ;
+                            f_pressure += P[*it].m*(2*K_GAS*P[*it].density)/(2*P[*it].density) * wGradientSpikyKernel(P[i].r ,P[*it].r) ;
+                            f_tension += P[*it].m * wGradientSpikyKernel(P[i].r,P[*it].r).length()*(P[i].r -P[*it].r);
+                        }
+                    }
                 }
             }
         }
-            //SPH
-            //Smoothing Kernel Wpoly6
-            //Viscosity
-        f_viscosity = calculateViscosityTotal(P[i] , i);
-        f_pressure = calculatePressureTotal(P[i] , i);
-        f_tension = calculateTension(P[i] , i);
+
+        f_tension = f_tension * (K_TENSION /P[i].m);
+        f_viscosity = -1*f_viscosity;
+
         total_a = (f_viscosity + f_pressure + f_tension  ) / WATER_DENSITY ;
        // printVec3(f_tension,"Tension");
       //  printf("A : %f %f %f \n",total_a.x,total_a.y,total_a.z);
@@ -393,18 +387,11 @@ static void update(){
         P[i].v.y += GRAVITY*dt/1000;
         P[i].r+= P[i].v*dt/1000;
 
-        gridMap[P[i].gridPos].erase(i);
-        vec3 newGridPos = P[i].r;
-        gridMap[newGridPos].insert(i);
-
-
         //Collision checking
-        if(P[i].r.y<= startY){
             P[i].r.y= startY;
             //P[i].v.y = 0;
             P[i].v.y= -0.2f*P[i].v.y;
         }
-        if(P[i].r.x<= startX){
             P[i].r.x= startX;
             P[i].v.x=-0.9f*P[i].v.x;
         }
@@ -413,12 +400,10 @@ static void update(){
             P[i].v.x=-0.9f*P[i].v.x;
         }
 
-        if(P[i].r.z<= startY){
-            P[i].r.z= startY;
+            P[i].r.z= startZ;
             P[i].v.z=-0.9f*P[i].v.z;
         }
-        if(P[i].r.z>= startY+sizeY){
-            P[i].r.z= startY+sizeY;
+            P[i].r.z= startZ+sizeZ;
             P[i].v.z=-0.9f*P[i].v.z;
         }
         //printf("Pos x = %.5f , y = %.5f ,z = %.5f ",P[i].r.x,P[i].r.y,P[i].r.z);
@@ -507,10 +492,17 @@ static void idle(void)
 {
     glutPostRedisplay();
     //c++ ;
-    if (c == 5 ) {
-        while(1) {
-
+    if (c == 1 ) {
+        for(map<vec3, vector<int>, CompareVectors>::iterator it1 = gridMap.begin(); it1 != gridMap.end(); it1++)
+        {
+            cout << it1->first.x << " " << it1->first.y << " " << it1->first.z << endl;
+            for (vector<int>::iterator it2 = it1->second.begin(); it2 != it1->second.end(); it2++)
+            {
+                cout << *it2 << " ";
+            }
+            cout << endl;
         }
+        while(1) {}
     }
 }
 
