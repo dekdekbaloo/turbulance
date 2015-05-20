@@ -388,10 +388,12 @@ static void update(){
         P[i].r+= P[i].v*dt/1000;
 
         //Collision checking
+        if(P[i].r.y<= startY){
             P[i].r.y= startY;
             //P[i].v.y = 0;
             P[i].v.y= -0.2f*P[i].v.y;
         }
+        if(P[i].r.x<= startX){
             P[i].r.x= startX;
             P[i].v.x=-0.9f*P[i].v.x;
         }
@@ -399,18 +401,11 @@ static void update(){
             P[i].r.x= startX+sizeX;
             P[i].v.x=-0.9f*P[i].v.x;
         }
-
-<<<<<<< HEAD
-            P[i].r.z= startZ;
-            P[i].v.z=-0.9f*P[i].v.z;
-        }
-=======
         if(P[i].r.z<= startZ){
             P[i].r.z= startZ;
             P[i].v.z=-0.9f*P[i].v.z;
         }
         if(P[i].r.z>= startZ+sizeZ){
->>>>>>> 254d449c99cfa054146e5f4475ac115257b262d3
             P[i].r.z= startZ+sizeZ;
             P[i].v.z=-0.9f*P[i].v.z;
         }
