@@ -30,15 +30,31 @@
 #define K_GAS 0.82057f
 #define K_TENSION 0.4f
 
-static int gridSize = 0.5;
+static float gridSize = 0.2f;
 static float GRAVITY = -2.5f ;
-static int numBall = 400 ;
+static int numBall = 400;
+static float startX = -1.0f;;
+static float sizeX = 4.0f;
+static float startY = -1.4f;
+static float sizeY = 3; //Not yet used
+static float startZ = -6.0f;
+static float sizeZ = 2.0f;
+
+struct CompareVectors
+{
+    bool operator()(const vec3& a, const vec3& b)
+    {
+        return (a.x == b.x) && (a.y == b.y) && (a.z == b.z);
+    }
+};
+
+typedef std::map<vec3, set<int>, CompareVectors> VectorMap;
 
 int lastTime=0;
 static float dt;
 static vector<Particle> P;
 Plane plane;
-static map< pair<int,int> , set<int> > atomGridData;
+static VectorMap gridMap;
 
 
 static void printVec3(vec3 a , const char *string)
@@ -47,12 +63,24 @@ static void printVec3(vec3 a , const char *string)
    printf(" : %f %f %f \n",a.x,a.y,a.z);
 }
 static void init(){
+    //Create grid
+    for (int i = 0; i < (int)(sizeX/gridSize); i++)
+    {
+        for (int j = 0; j < (int)(sizeY/gridSize); j++)
+        {
+            for (int k = 0; k < (int)(sizeZ/gridSize); k++)
+            {
+                gridMap[vec3(i,j,k)] = set<int>();
+            }
+        }
+    }
+
     // Create Particle
     for(int i=0;i<numBall;i++){
         int kx = rand()%500 ;
         int ky = rand()%200 ;
         int kz = rand()%200 ;
-        Particle part(vec3 (0.5+0.003*kx,0.1+0.02*ky,6-0.01*kz),1.0) ;
+        Particle part(vec3 (0.5+0.003*kx,0.1+0.02*ky,6-0.01*kz),1.0);
         //Particle part(vec3 (-2,0,-6),1) ;
         //part.v.z = rand()%100/100000.0 ;
         part.v = vec3 (0,0,0);
@@ -74,7 +102,7 @@ static void resize(int width, int height)
     glFrustum(-ar, ar, -1.0, 1.0, 2.0, 100.0);
 
     glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity() ;
+    glLoadIdentity();
 }
 //Calculate Force
 /*
@@ -142,11 +170,22 @@ static void update(){
         vec3 f_pressure ;
         vec3 f_tension ;
 
-        int gridX = P[i].gridPos.first;
-        int gridY = P[i].gridPos.second;
-        boolean run = true;
-       while(run)
+        int gridX = P[i].gridPos.x;
+        int gridY = P[i].gridPos.y;
+        int gridZ = P[i].gridPos.z;
+        for(int a = -1; a < 2; a=a+2)
         {
+            gridX = gridX + a;
+            for (int b = -1; b < 2; b=b+2)
+            {
+                gridY = gridY + b;
+                for (int c = -1; c < 2; c=c+2)
+                {
+                    gridZ = gridZ + c;
+                    if (gridX < 0 || gridY < 0 || gridZ < 0) break;
+                }
+            }
+        }
             //SPH
             //Smoothing Kernel Wpoly6
             //Viscosity
@@ -156,14 +195,17 @@ static void update(){
         total_a = (f_viscosity + f_pressure + f_tension  ) / WATER_DENSITY ;
        // printVec3(f_tension,"Tension");
       //  printf("A : %f %f %f \n",total_a.x,total_a.y,total_a.z);
-        break ;
-        }
 
         // printf("index : %d acc = %.12f\n",i,f_viscosity.length());
         // printf("Acc x = %.5f , y = %.5f ,z = %.5f \n",total_a.x,total_a.y,total_a.z);
         P[i].v = P[i].v + total_a*dt/1000;
         P[i].v.y += GRAVITY*dt/1000;
-        P[i].update(dt);
+        P[i].r+= P[i].v*dt/1000;
+
+        gridMap[P[i].gridPos].erase(i);
+        vec3 newGridPos = P[i].r;
+        gridMap[newGridPos].insert(i);
+
 
                 //Collision checking
         if(P[i].r.y<=-1.4f){

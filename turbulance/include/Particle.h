@@ -14,7 +14,7 @@ class Particle
         vec3 v;
         float m;
         float density = WATER_DENSITY ;
-        pair<int,int> gridPos;
+        vec3 gridPos;
         Particle(vec3 position,float mass) : r(position) , m(mass) {}
         //virtual ~Particle();
         void draw(){
@@ -24,9 +24,6 @@ class Particle
                 glTranslated(r.x,r.y,r.z);
                 glutSolidSphere(0.1f,10,10);
             glPopMatrix();
-        }
-        void update(int dt){
-            r+=v*dt/1000;
         }
 
 };
