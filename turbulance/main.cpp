@@ -400,9 +400,17 @@ static void update(){
             P[i].v.x=-0.9f*P[i].v.x;
         }
 
+<<<<<<< HEAD
             P[i].r.z= startZ;
             P[i].v.z=-0.9f*P[i].v.z;
         }
+=======
+        if(P[i].r.z<= startZ){
+            P[i].r.z= startZ;
+            P[i].v.z=-0.9f*P[i].v.z;
+        }
+        if(P[i].r.z>= startZ+sizeZ){
+>>>>>>> 254d449c99cfa054146e5f4475ac115257b262d3
             P[i].r.z= startZ+sizeZ;
             P[i].v.z=-0.9f*P[i].v.z;
         }
