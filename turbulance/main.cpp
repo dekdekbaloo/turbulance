@@ -34,7 +34,7 @@
 
 static float gridSize = 0.2f;
 static float GRAVITY = -2.5f ;
-static int numBall = 300;
+static int numBall = 1500;
 static float startX = -0.5f;;
 static float sizeX = 1.0f;
 static float startY = -1.4f;
@@ -61,6 +61,7 @@ GLuint f;
 GLuint p;
 
 int lastTime=0;
+int test = 0 ;
 static float dt;
 static vector<Particle> P;
 Plane plane;
@@ -251,17 +252,7 @@ static void printVec3(vec3 a , const char *string)
    printf(" : %f %f %f \n",a.x,a.y,a.z);
 }
 static void init(){
-    //Create grid
-    for (int i = 0; i < (int)(sizeX/gridSize); i++)
-    {
-        for (int j = 0; j < (int)(sizeY/gridSize); j++)
-        {
-            for (int k = 0; k < (int)(sizeZ/gridSize); k++)
-            {
-                gridMap[vec3(i,j,k)] = vector<int>();
-            }
-        }
-    }
+
     // Create Particle
     for(int i=0;i<numBall;i++){
         int kx = rand()%500 ;
@@ -321,14 +312,15 @@ static void update(){
     dt=(currTime-lastTime);
     lastTime=currTime;
 
-    for(map<vec3, vector<int>, CompareVectors>::iterator it1 = gridMap.begin(); it1 != gridMap.end(); it1++)
-    {
-        it1->second.clear();
-    }
+    gridMap.clear();
 
     for(int i = 0; i < P.size();i++)
     {
         vec3 newGridPos = P[i].r/gridSize;
+        newGridPos.x = (int)(newGridPos.x);
+        newGridPos.y = (int)(newGridPos.y);
+        newGridPos.z = (int)(newGridPos.z);
+        //if (test%10) cout << newGridPos.x << " " << newGridPos.y << " " << newGridPos.z << endl;
         gridMap[newGridPos].push_back(i);
     }
 
@@ -341,15 +333,15 @@ static void update(){
         int gridX = P[i].gridPos.x;
         int gridY = P[i].gridPos.y;
         int gridZ = P[i].gridPos.z;
-        for(int a = -1; a < 2; a=a+2)
+        for(int a = -1; a < 2; a++)
         {
             gridX = gridX + a;
             if (gridX < 0) continue;
-            for (int b = -1; b < 2; b=b+2)
+            for (int b = -1; b < 2; b++)
             {
                 gridY = gridY + b;
                 if (gridY < 0) continue;
-                for (int c = -1; c < 2; c=c+2)
+                for (int c = -1; c < 2; c++)
                 {
                     gridZ = gridZ + c;
                     if (gridZ < 0) continue;
@@ -490,23 +482,23 @@ void mouseMove(int x, int y) {
 	xOrigin=x;
 
 }
-int c = 0 ;
+
 static void idle(void)
 {
     glutPostRedisplay();
-    //c++ ;
-    if (c == 1 ) {
-        for(map<vec3, vector<int>, CompareVectors>::iterator it1 = gridMap.begin(); it1 != gridMap.end(); it1++)
-        {
-            cout << it1->first.x << " " << it1->first.y << " " << it1->first.z << endl;
-            for (vector<int>::iterator it2 = it1->second.begin(); it2 != it1->second.end(); it2++)
-            {
-                cout << *it2 << " ";
-            }
-            cout << endl;
-        }
-        while(1) {}
-    }
+//    test++ ;
+//    if (test % 100 ) {
+//        for(map<vec3, vector<int>, CompareVectors>::iterator it1 = gridMap.begin(); it1 != gridMap.end(); it1++)
+//        {
+//            cout << it1->first.x << " " << it1->first.y << " " << it1->first.z << " has " << it1->second.size() << endl;
+////            for (vector<int>::iterator it2 = it1->second.begin(); it2 != it1->second.end(); it2++)
+////            {
+////                cout << *it2 << " ";
+////            }
+////            cout << endl;
+//        }
+//        //while(1) {}
+//    }
 }
 
 const GLfloat light_ambient[]  = { 0.0f, 0.0f, 0.0f, 1.0f };
