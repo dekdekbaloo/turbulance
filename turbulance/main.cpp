@@ -11,9 +11,12 @@
  * number of geometry stacks and slices can be adjusted
  * using the + and - keys.
  */
-
-#include <windows.h>
+#define GLEW_STATIC
+#include <GL/glew.h>
+#include <GL/gl.h>
+#include <GL/glu.h>
 #include <GL/glut.h>
+#include <windows.h>
 #include "include/Plane.h"
 #include "include/Particle.h"
 #include "include/Kernel.h"
@@ -25,14 +28,23 @@
 #include <stdio.h>
 
 // #define W_VISCOSITY_CONT 0.000894f
-#define W_VISCOSITY_CONT 4.0f
+#define W_VISCOSITY_CONT 4.80f
 #define SCALE 0.00001f
-#define K_GAS 0.82057f
-#define K_TENSION 0.4f
+#define K_GAS 0.082057f
+#define K_TENSION 0.04f
+#define GLEW_STATIC 50
 
 static int gridSize = 0.5;
-static float GRAVITY = -2.5f ;
-static int numBall = 400 ;
+static float GRAVITY = -1 ;
+static int numBall = 300 ;
+
+float deltaAngle = 0.0f;
+int buttonState=0;
+int xOrigin = -1;
+
+GLuint v;
+GLuint f;
+GLuint p;
 
 int lastTime=0;
 static float dt;
@@ -40,13 +52,192 @@ static vector<Particle> P;
 Plane plane;
 static map< pair<int,int> , set<int> > atomGridData;
 
+void set_shaders()
+{
+	char *vs=NULL;
+	char *fs=NULL;
 
+	vs=(char *)malloc(sizeof(char)*10000);
+	fs=(char *)malloc(sizeof(char)*10000);
+	memset(vs, 0, sizeof(char)*10000);
+	memset(fs, 0, sizeof(char)*10000);
+
+	FILE *fp;
+	char c;
+	int count;
+
+	fp=fopen("Shader/shader.vs", "r");
+	count=0;
+	while((c=fgetc(fp)) != EOF)
+	{
+		vs[count]=c;
+		count++;
+	}
+	fclose(fp);
+
+	fp=fopen("Shader/shader.fs", "r");
+	count=0;
+	while((c=fgetc(fp)) != EOF)
+	{
+		fs[count]=c;
+		count++;
+	}
+	fclose(fp);
+
+	v=glCreateShader(GL_VERTEX_SHADER);
+	f=glCreateShader(GL_FRAGMENT_SHADER);
+
+	const char *vv;
+	const char *ff;
+	vv=vs;
+	ff=fs;
+
+	glShaderSource(v, 1, &vv, NULL);
+	glShaderSource(f, 1, &ff, NULL);
+
+	int success;
+
+	glCompileShader(v);
+	glGetShaderiv(v, GL_COMPILE_STATUS, &success);
+	if(!success)
+	{
+		char info_log[5000];
+		glGetShaderInfoLog(v, 5000, NULL, info_log);
+		printf("Error in vertex shader compilation!\n");
+		printf("Info Log: %s\n", info_log);
+	}
+
+	glCompileShader(f);
+	glGetShaderiv(f, GL_COMPILE_STATUS, &success);
+	if(!success)
+	{
+		char info_log[5000];
+		glGetShaderInfoLog(f, 5000, NULL, info_log);
+		printf("Error in fragment shader compilation!\n");
+		printf("Info Log: %s\n", info_log);
+	}
+
+	p=glCreateProgram();
+	glAttachShader(p, v);
+	glAttachShader(p, f);
+	glLinkProgram(p);
+	glUseProgram(p);
+
+	free(vs);
+	free(fs);
+}
+/*
+static void set_shaders(){
+    std::string vertexSource = "Shader/shader.vs" ;
+    std::string fragmentSource = "Shader/shader.fs" ;
+    v = glCreateShader(GL_VERTEX_SHADER);
+
+    //Send the vertex shader source code to GL
+    //Note that std::string's .c_str is NULL character terminated.
+    const GLchar *source = (const GLchar *)vertexSource.c_str();
+    glShaderSource(v, 1, &source, 0);
+
+    //Compile the vertex shader
+    glCompileShader(v);
+
+    GLint isCompiled = 0;
+    glGetShaderiv(v, GL_COMPILE_STATUS, &isCompiled);
+    if(isCompiled == GL_FALSE)
+    {
+        GLint maxLength = 0;
+        glGetShaderiv(v, GL_INFO_LOG_LENGTH, &maxLength);
+
+        //The maxLength includes the NULL character
+        std::vector<GLchar> infoLog(maxLength);
+        glGetShaderInfoLog(v, maxLength, &maxLength, &infoLog[0]);
+
+        //We don't need the shader anymore.
+        glDeleteShader(v);
+
+        //Use the infoLog as you see fit.
+        //In this simple program, we'll just leave
+        return;
+    }
+    f = glCreateShader(GL_FRAGMENT_SHADER);
+
+    //Send the fragment shader source code to GL
+    //Note that std::string's .c_str is NULL character terminated.
+    source = (const GLchar *)fragmentSource.c_str();
+    glShaderSource(f, 1, &source, 0);
+
+    //Compile the fragment shader
+    glCompileShader(f);
+
+    glGetShaderiv(f, GL_COMPILE_STATUS, &isCompiled);
+    if(isCompiled == GL_FALSE)
+    {
+        GLint maxLength = 0;
+        glGetShaderiv(f, GL_INFO_LOG_LENGTH, &maxLength);
+
+        //The maxLength includes the NULL character
+        std::vector<GLchar> infoLog(maxLength);
+        glGetShaderInfoLog(f, maxLength, &maxLength, &infoLog[0]);
+
+        //We don't need the shader anymore.
+        glDeleteShader(f);
+        //Either of them. Don't leak shaders.
+        glDeleteShader(v);
+
+        //Use the infoLog as you see fit.
+
+        //In this simple program, we'll just leave
+        return;
+    }else{
+        printf("Ready!");
+    }
+
+    //Vertex and fragment shaders are successfully compiled.
+    //Now time to link them together into a program.
+    //Get a program object.
+    p = glCreateProgram();
+
+    //Attach our shaders to our program
+    glAttachShader(p, v);
+    glAttachShader(p, f);
+
+    //Link our program
+    glLinkProgram(p);
+
+    //Note the different functions here: glGetProgram* instead of glGetShader*.
+    GLint isLinked = 0;
+    glGetProgramiv(p, GL_LINK_STATUS, (int *)&isLinked);
+    if(isLinked == GL_FALSE)
+    {
+        GLint maxLength = 0;
+        glGetProgramiv(p, GL_INFO_LOG_LENGTH, &maxLength);
+
+        //The maxLength includes the NULL character
+        std::vector<GLchar> infoLog(maxLength);
+        glGetProgramInfoLog(p, maxLength, &maxLength, &infoLog[0]);
+
+        //We don't need the program anymore.
+        glDeleteProgram(p);
+        //Don't leak shaders either.
+        glDeleteShader(v);
+        glDeleteShader(f);
+
+        //Use the infoLog as you see fit.
+
+        //In this simple program, we'll just leave
+        return;
+    }
+
+    //Always detach shaders after a successful link.
+    glDetachShader(p, v);
+    glDetachShader(p, f);
+}*/
 static void printVec3(vec3 a , const char *string)
 {
     printf (string);
    printf(" : %f %f %f \n",a.x,a.y,a.z);
 }
 static void init(){
+    glewInit();
     // Create Particle
     for(int i=0;i<numBall;i++){
         int kx = rand()%500 ;
@@ -63,12 +254,15 @@ static void init(){
 
 
 /* GLUT callback Handlers */
-
+float lx=0.0f;
+float lz=0.0f;
+float angle=0.0f;
 static void resize(int width, int height)
 {
     const float ar = (float) width / (float) height;
 
     glViewport(0, 0, width, height);
+
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glFrustum(-ar, ar, -1.0, 1.0, 2.0, 100.0);
@@ -94,7 +288,7 @@ static vec3 calculateTension(Particle p ,int index){
 }*/
 static vec3 calculateTension(Particle p ,int index){
     vec3 wr(0.0f,0.0f,0.0f);
-    for(int i=0;i<P.size();i++)
+    for(size_t i=0;i<P.size();i++)
     {
         if(i == index) continue ;
         wr += P[i].m * wGradientSpikyKernel(p.r,P[i].r).length()*(p.r -P[i].r);
@@ -144,7 +338,7 @@ static void update(){
 
         int gridX = P[i].gridPos.first;
         int gridY = P[i].gridPos.second;
-        boolean run = true;
+        bool run = true;
        while(run)
         {
             //SPH
@@ -171,12 +365,12 @@ static void update(){
             //P[i].v.y = 0;
             P[i].v.y=-0.2f*P[i].v.y;
         }
-        if(P[i].r.x<=-1.0f){
-            P[i].r.x=-1.0f;
+        if(P[i].r.x<=-0.5f){
+            P[i].r.x=-0.5f;
             P[i].v.x=-0.9f*P[i].v.x;
         }
-        if(P[i].r.x>=3.0f){
-            P[i].r.x=3.0f;
+        if(P[i].r.x>=0.5f){
+            P[i].r.x=0.5f;
             P[i].v.x=-0.9f*P[i].v.x;
         }
 
@@ -184,8 +378,8 @@ static void update(){
             P[i].r.z=-6.0f;
             P[i].v.z=-0.9f*P[i].v.z;
         }
-        if(P[i].r.z>=-4.0f){
-            P[i].r.z=-4.0f;
+        if(P[i].r.z>=-5.0f){
+            P[i].r.z=-5.0f;
             P[i].v.z=-0.9f*P[i].v.z;
         }
         //printf("Pos x = %.5f , y = %.5f ,z = %.5f ",P[i].r.x,P[i].r.y,P[i].r.z);
@@ -196,14 +390,35 @@ static void update(){
 
 static void display(void)
 {
+    glTranslatef(0,0,-5.5f);
+    glRotatef(angle,0,1,0);
+    glTranslatef(0,0,5.5f);
+
+    // Test Vertex Shader
+    glPushMatrix();
+
+	glUseProgram(p);
+	glPointSize(2.0f);
+	glColor3f(0.9f, 0.9f, 1.0f);
+	for(int i=0; i<10; i++)
+	{
+		glBegin(GL_POINTS);
+			glVertex3f(-1+0.1f * i ,-1+0.1f * i ,0.1f * i );
+		glEnd();
+	}
+    glPopMatrix();
+
     update();
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+    glEnable(GL_POINT_SMOOTH);
+	glEnable(GL_DEPTH_TEST);
         for(int i=0;i<P.size();i++){
             P[i].draw();
         }
-        plane.draw();
+    plane.draw();
 
+
+    glPopMatrix();
     glutSwapBuffers();
 
 }
@@ -214,6 +429,41 @@ static void key(unsigned char key, int x, int y)
     glutPostRedisplay();
 }
 
+void mouseButton(int button, int state, int x, int y) {
+
+	// only start motion if the left button is pressed
+	if (button == GLUT_LEFT_BUTTON) {
+
+		// when the button is released
+		if (state == GLUT_DOWN)
+	{
+        buttonState = 1;
+	}
+    else if (state == GLUT_UP)
+	{
+        buttonState = 0;
+        angle=0;
+	}
+	}
+	xOrigin=x;
+
+}
+void mouseMove(int x, int y) {
+
+	// this will only be true when the left button is down
+	if (buttonState==1) {
+
+		// update deltaAngle
+		deltaAngle = (x - xOrigin) * 0.5f;
+        angle=deltaAngle;
+
+		// update camera's direction
+		lx = sin(angle + deltaAngle);
+		lz = -cos(angle + deltaAngle);
+	}
+	xOrigin=x;
+
+}
 int c = 0 ;
 static void idle(void)
 {
@@ -273,9 +523,13 @@ int main(int argc, char *argv[])
     glMaterialfv(GL_FRONT, GL_DIFFUSE,   mat_diffuse);
     glMaterialfv(GL_FRONT, GL_SPECULAR,  mat_specular);
     glMaterialfv(GL_FRONT, GL_SHININESS, high_shininess);
+    //camera movement
+    glutMouseFunc(mouseButton);
+	glutMotionFunc(mouseMove);
 
 
     init();
+	set_shaders();
     glutMainLoop();
 
     return EXIT_SUCCESS;
