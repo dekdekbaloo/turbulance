@@ -6,7 +6,7 @@
 #include <stdio.h>
 
 #define REST_DENSITY 10000.0f // 1000 kg/m^3
-#define H 0.15f // smoothing radius
+#define H 0.8f // smoothing radius
 #define POW_H_9 (float)(H*H*H*H*H*H*H*H*H) // h^9
 #define POW_H_6 (float)(H*H*H*H*H*H) // h^6
 #define POW_H_3 (float)(H*H*H) // h^3
@@ -33,6 +33,16 @@ vec3 wGradientPoly6Kernel(vec3 ri, vec3 rj){
         return coefficient*hr_term*hr_term*rv ;
     else
         return vec3(0.0f,0.0f,0.0f) ;
+}
+float wGradient2Poly6Kernel(vec3 ri, vec3 rj){
+    vec3 rv = ri-rj ;
+	float r = rv.length();
+	float coefficient = -945.0/(32.0*PI*POW_H_9);
+	float hr_term = H*H - r * r ;
+	if ( 0 <= r && r <= H)
+        return coefficient*hr_term*(3*H*H - 7*r) ;
+    else
+        return 0.0f ;
 }
 
 vec3 wGradient2SpikyKernel(vec3 ri, vec3 rj){

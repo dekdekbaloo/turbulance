@@ -27,28 +27,25 @@
 
 
 // #define W_VISCOSITY_CONT 0.000894f
-#define W_VISCOSITY_CONT 4.894f
-#define K_GAS 0.8314f
+#define W_VISCOSITY_CONT 500.94f
+#define K_GAS 0.08314f
 
-#define K_TENSION 0.004f
-#define GLEW_STATIC 50
-#define WATER_DENSITY  998.8f
-#define DENS 888.8f
+#define K_TENSION 0.44f
+#define WATER_DENSITY  988.8f
+#define DENS 988.8f
 #define PI 3.141592653589
-#define NORM 20/(2*PI*H*H)
-#define NEARNORM 30/(2*PI*H*H)
-#define REST_DENSITY 989.0f
-#define SURFACE_THRESHOLD 0.01f
+#define REST_DENSITY 980.0f
+#define SURFACE_THRESHOLD 0.1f
 
 static float gridSize = 0.2f;
-static float GRAVITY = -9.8f ;
-static int numBall = 200;
+static float GRAVITY = -4.8f ;
+static int numBall = 1000;
 static float startX = -0.5f;;
 static float sizeX = 3.0f;
 static float startY = -1.4f;
 static float sizeY = 100; //Not yet used
 static float startZ = -6.0f;
-static float sizeZ = 1.0f;
+static float sizeZ = 2.0f;
 static float c_rad = 4.0f;
 
 struct coord {
@@ -77,7 +74,6 @@ class Particle
         float P;
         coord gridPos;
         Particle(vec3 position,float mass) : r(position) , m(mass), gridPos(coord(0.0f,0.0f,0.f)) {}
-        //virtual ~Particle();
         void draw(){
            glColor3d(0,0.5f,0.5f);
 
@@ -120,11 +116,11 @@ static void init(){
 
     // Create Particle
     for(int i=0;i<numBall;i++){
-        int kx = rand()%500 ;
+        int kx = rand()%400 ;
         int ky = rand()%200 ;
-        int kz = rand()%500 ;
+        int kz = rand()%200 ;
         //Particle part(vec3 (-1,5,1) ,1.0f);
-        Particle part(vec3 (0.5-0.01*kx,0.1-0.01*ky,-4-0.01*kz),1);
+        Particle part(vec3 (-0.5+0.005*kx,0.1+0.03*ky,-6+0.01*kz),3.0f);
 
         //Particle part(vec3 (-2,0,-6),1) ;
         //part.v.z = rand()%100/100000.0 ;
@@ -264,10 +260,8 @@ static void update(){
     int currTime=glutGet(GLUT_ELAPSED_TIME);
     dt=(currTime-lastTime);
     lastTime=currTime;
-    dt=5;
 
     gridMap.clear();
-
     for(int a = (int)(startX/gridSize); a < (int)(sizeX/gridSize); a++)
     {
         for(int b = (int)(startX/gridSize); b < (int)(sizeX/gridSize); b++)
@@ -297,7 +291,7 @@ static void update(){
 
     //cout << endl << endl << endl;
 
-    dt = 3 ;
+
     for(int i=0;i<P.size();i++){
         vec3 total_a(0.0f,0.0f,0.0f) ;
         vec3 f_viscosity(0.0f,0.0f,0.0f);
@@ -346,8 +340,8 @@ static void update(){
                             f_viscosity +=  P[*it].m*(P[*it].v-P[i].v)/P[*it].density * wGradient2ViscosityKernel(P[i].r ,P[*it].r) ;
                             f_pressure += P[*it].m*(P[*it].P+P[i].P)/(2*P[*it].density) * wGradientSpikyKernel(P[i].r ,P[*it].r) ;
                             //Calculate
-                            f_tension += P[*it].m/P[*it].density * wGradient2SpikyKernel(P[i].r,P[*it].r);
-                            f_tension_norm += P[*it].m/P[*it].density * wGradientSpikyKernel(P[i].r,P[*it].r) ;
+                            f_tension += P[*it].m/P[*it].density * wGradient2Poly6Kernel(P[i].r,P[*it].r);
+                            f_tension_norm += P[*it].m/P[*it].density * wGradientPoly6Kernel(P[i].r,P[*it].r) ;
                         }
                     }
                     //cout << endl << endl;
@@ -358,14 +352,16 @@ static void update(){
         }
 
         // Calculate Total Force
-        if (f_tension_norm.length() > SURFACE_THRESHOLD )f_tension = (-K_TENSION * f_tension ) * f_tension_norm / (f_tension_norm.length() +0.0001f) ;
+        if (f_tension_norm.length() > SURFACE_THRESHOLD )f_tension=(-K_TENSION * f_tension ) * f_tension_norm / (f_tension_norm.length() +0.0001f) ;
 
         else f_tension = 0 ;
-        f_viscosity = f_viscosity;
+        f_viscosity = W_VISCOSITY_CONT * f_viscosity;
         f_pressure = -f_pressure ;
        // printf("Part %d Neigh= %d \n",i,co);
         total_a = (f_viscosity + f_tension +f_pressure  ) / P[i].density ;
-        //printVec3(f_tension,"T");
+       printVec3(f_tension,"T");
+      //  printVec3(f_pressure,"P");
+       // printVec3(f_viscosity,"V");
        // printVec3(total_a,"Total");
         // Update Position and Velocity
        // P[i].v = P[i].v + total_a*dt/1000;
@@ -374,8 +370,8 @@ static void update(){
         P[i].r += P[i].v*dt/1000 +(total_a)*dt/1000*dt/1000;
         P[i].v =  (P[i].r - P[i].prev_r )/dt*1000;
         checkCollision(P[i]);
-       // printVec3(P[i].v,"Ve ");
-        //printf("Pos x = %.5f , y = %.5f ,z = %.5f \n",P[i].r.x,P[i].r.y,P[i].r.z);
+        // printVec3(P[i].v,"Ve ");
+        // printf("Pos x = %.5f , y = %.5f ,z = %.5f \n",P[i].r.x,P[i].r.y,P[i].r.z);
 
 
     }
