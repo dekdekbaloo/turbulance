@@ -27,19 +27,20 @@
 
 
 // #define W_VISCOSITY_CONT 0.000894f
-#define W_VISCOSITY_CONT 5000.0f
-#define K_GAS 100.9314f
+#define W_VISCOSITY_CONT 10000.0f
+#define K_GAS 800.0f
 
-#define K_TENSION 4.0f
-#define WATER_DENSITY  908.8f
-#define DENS 908.8f
+#define K_TENSION 100.0f
+#define WATER_DENSITY  800.0f
+#define DENS 800.0f
 #define PI 3.141592653589
-#define REST_DENSITY 900.0f
-#define SURFACE_THRESHOLD 0.1f
+#define REST_DENSITY 800.0f
+#define SURFACE_THRESHOLD 1.00f
+#define COLLIDE_CONSTANT 0.99f
 
 static float gridSize = 0.2f;
-static float GRAVITY = -5.8f ;
-static int numBall = 500;
+static float GRAVITY = -9.8f;
+static int numBall = 700;
 static float startX = -0.5f;;
 static float sizeX = 3.0f;
 static float startY = -1.4f;
@@ -167,19 +168,19 @@ static void checkCollision(Particle &p)
         }
         if(p.r.x< startX){
             p.r.x = startX+0.001 ;
-            p.v.x=-0.9f*p.v.x;
+            p.v.x=-COLLIDE_CONSTANT*p.v.x;
         }
         if(p.r.x> startX+sizeX){
             p.r.x = startX+sizeX-0.001 ;
-            p.v.x=-0.9f*p.v.x;
+            p.v.x=-COLLIDE_CONSTANT*p.v.x;
         }
         if(p.r.z< startZ){
             p.r.z = startZ+0.001;
-            p.v.z=-0.9f*p.v.z;
+            p.v.z=-COLLIDE_CONSTANT*p.v.z;
         }
         if(p.r.z> startZ+sizeZ){
             p.r.z = startZ+sizeZ-0.001;
-            p.v.z=-0.9f*p.v.z;
+            p.v.z=-COLLIDE_CONSTANT*p.v.z;
         }
     //Cylinder Collision checking
        /*float xz = p.r.x*p.r.x + p.r.z*p.r.z ;
@@ -200,37 +201,35 @@ static void update(){
     dt=(currTime-lastTime);
     lastTime=currTime;
 
-    dt = 100;
+//    gridMap.clear();
+//    for(int a = (int)(startX/gridSize); a < (int)((startX+sizeX)/gridSize); a++)
+//    {
+//        for(int b = (int)(startY/gridSize); b < (int)((startY+sizeY)/gridSize); b++)
+//        {
+//            for(int c = (int)(startZ/gridSize); c < (int)((startZ+sizeZ)/gridSize); c++)
+//            {
+//                coord v(a,b,c);
+//                gridMap[v] = vector<int>();
+//            }
+//
+//        }
+//
+//    }
 
-    gridMap.clear();
-    for(int a = (int)(startX/gridSize); a < (int)((startX+sizeX)/gridSize); a++)
-    {
-        for(int b = (int)(startY/gridSize); b < (int)((startY+sizeY)/gridSize); b++)
-        {
-            for(int c = (int)(startZ/gridSize); c < (int)((startZ+sizeZ)/gridSize); c++)
-            {
-                coord v(a,b,c);
-                gridMap[v] = vector<int>();
-            }
-
-        }
-
-    }
-
-    for(int i = 0; i < P.size();i++)
-    {
-        vec3 newGridPos = P[i].r/gridSize;
-        newGridPos.x = (int)(newGridPos.x);
-        newGridPos.y = (int)(newGridPos.y);
-        newGridPos.z = (int)(newGridPos.z);
-        coord c(newGridPos.x,newGridPos.y,newGridPos.z);
-        P[i].gridPos = c;
-        //cout << newGridPos.x << " " << newGridPos.y << " " << newGridPos.z << endl;
-        gridMap[c].push_back(i);
-        //cout << gridMap[c].size() << endl;
-    }
-
-    //cout << endl << endl << endl;
+//    for(int i = 0; i < P.size();i++)
+//    {
+//        vec3 newGridPos = P[i].r/gridSize;
+//        newGridPos.x = (int)(newGridPos.x);
+//        newGridPos.y = (int)(newGridPos.y);
+//        newGridPos.z = (int)(newGridPos.z);
+//        coord c(newGridPos.x,newGridPos.y,newGridPos.z);
+//        P[i].gridPos = c;
+//        //cout << newGridPos.x << " " << newGridPos.y << " " << newGridPos.z << endl;
+//        gridMap[c].push_back(i);
+//        //cout << gridMap[c].size() << endl;
+//    }
+//
+//    //cout << endl << endl << endl;
 
 
     for(int i=0;i<P.size();i++){
@@ -243,9 +242,9 @@ static void update(){
         //P[i].r += P[i].v*dt/300 ;
         P[i].v += vec3(0.0f,GRAVITY,0.0f)*dt/1000;
         int co = 0 ;
-        int gridX = P[i].gridPos.x;
-        int gridY = P[i].gridPos.y;
-        int gridZ = P[i].gridPos.z;
+//        int gridX = P[i].gridPos.x;
+//        int gridY = P[i].gridPos.y;
+//        int gridZ = P[i].gridPos.z;
 
         float density = DENS ;
         float nearDensity = 0;
@@ -282,17 +281,18 @@ static void update(){
         else f_tension = 0 ;
         f_viscosity = W_VISCOSITY_CONT * f_viscosity;
         f_pressure = -f_pressure ;
-       // printf("Part %d Neigh= %d \n",i,co);
+        // printf("Part %d Neigh= %d \n",i,co);
         total_a = (f_viscosity + f_tension +f_pressure  ) / P[i].density ;
-       //printVec3(f_tension,"T");
-       // printVec3(f_viscosity,"V");
-       // printVec3(total_a,"Total");
+        //printVec3(f_tension,"T");
+        //printVec3(f_viscosity,"V");
+        //printVec3(total_a,"Total");
+        //printf("\n");
         // Update Position and Velocity
-       // P[i].v = P[i].v + total_a*dt/1000;
+        // P[i].v = P[i].v + total_a*dt/1000;
         //P[i].v.y += GRAVITY*dt/1000;
         P[i].prev_r = P[i].r ;
-        P[i].r += P[i].v*dt/1000 +(total_a)*dt/1000*dt/1000;
-        P[i].v =  (P[i].r - P[i].prev_r )/dt*1000;
+        P[i].r += P[i].v*dt/1000 +(total_a)*dt/1000*dt/1000*COLLIDE_CONSTANT;
+        P[i].v =  (P[i].r - P[i].prev_r )/dt*1000*COLLIDE_CONSTANT;
         checkCollision(P[i]);
         // printVec3(P[i].v,"Ve ");
         // printf("Pos x = %.5f , y = %.5f ,z = %.5f \n",P[i].r.x,P[i].r.y,P[i].r.z);
