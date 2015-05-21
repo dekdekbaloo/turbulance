@@ -13,6 +13,18 @@
 #define POW_H_5 (float)(H*H*H*H*H) // h^5
 #define PI 3.141592653589
 
+float wPoly6Kernel(vec3 ri, vec3 rj){
+    vec3 rv = ri-rj ;
+	float r = rv.length();
+	float hr_term = (H * H - r * r);
+	float div = 64.0 * PI * POW_H_9;
+    printf("r : %f hr_term : %f  \n",r,hr_term);
+	if ( 0 <= r && r <= H)
+        return 315.0f / div * 6 * r * hr_term * hr_term * hr_term ;
+    else
+        return 0.0f ;
+}
+
 vec3 wGradientPoly6Kernel(vec3 ri, vec3 rj){
     vec3 rv = ri-rj ;
 	float r = rv.length();
@@ -26,31 +38,23 @@ vec3 wGradientPoly6Kernel(vec3 ri, vec3 rj){
 
 vec3 wGradient2SpikyKernel(vec3 ri, vec3 rj){
 	vec3 rv = ri-rj ;
-	//printf("ri : %f %f %f \n",ri.x,ri.y,ri.z);
-	//printf("rj : %f %f %f \n",rj.x,rj.y,rj.z);
-	//printf("rv : %f %f %f \n",rv.x,rv.y,rv.z);
 	float r = rv.length() ;
 	if (r < 0.000001f) return  vec3(0.0f,0.0f,0.0f);
 	float hr_term = H - r;
 	float gradient_magnitude = -90.0f / (PI * POW_H_6) * hr_term;
 	float div = (rv.length() + 0.001f);
-   // printf("r : %f hr_term : %f gm : %f \n",r,hr_term,gradient_magnitude);
 	if ( 0 <= r && r <= H)
-        return ( -gradient_magnitude* 1.0f / div )* rv;
+        return ( -gradient_magnitude)* rv * 1.0f / div ;
     else
         return vec3(0.0f,0.0f,0.0f) ;
 }
 vec3 wGradientSpikyKernel(vec3 ri, vec3 rj){
 	vec3 rv = ri-rj ;
-	//printf("ri : %f %f %f \n",ri.x,ri.y,ri.z);
-	//printf("rj : %f %f %f \n",rj.x,rj.y,rj.z);
-	//printf("rv : %f %f %f \n",rv.x,rv.y,rv.z);
 	float r = rv.length() ;
 	if (r < 0.000001f) return  vec3(0.0f,0.0f,0.0f);
 	float hr_term = H - r;
 	float gradient_magnitude = 45.0f / (PI * POW_H_6) * hr_term * hr_term;
 	float div = (rv.length() + 0.001f);
-   // printf("r : %f hr_term : %f gm : %f \n",r,hr_term,gradient_magnitude);
 	if ( 0 <= r && r <= H)
         return ( -gradient_magnitude* 1.0f / div )* rv;
     else
@@ -77,7 +81,6 @@ vec3 wGradient2ViscosityKernel(vec3 ri, vec3 rj){
 	float hr_term = 1-r/H ;
 	float gradient_magnitude = 45.0f / ( PI * POW_H_5) * hr_term ;
 	float div = (rv.length() + 0.001f);
-    //printf("r : %f hr_term : %f gm : %f \n",r,hr_term,gradient_magnitude);
 	if ( 0 <= r && r <= H)
         return ( gradient_magnitude * 1.0f / div )* rv;
     else

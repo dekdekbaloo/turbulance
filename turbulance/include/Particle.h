@@ -11,20 +11,29 @@ class Particle
 
     public:
         vec3 r;
+        vec3 prev_r;
         vec3 v;
-        float m;
+        float m = 1.0f;
         float density = WATER_DENSITY ;
+<<<<<<< HEAD
         coord gridPos;
         Particle(vec3 position,float mass) : r(position) , m(mass) , gridPos(0,0,0) {}
+=======
+        float nearDensity = WATER_DENSITY ;
+        float P = WATER_DENSITY ;
+        float nearP = WATER_DENSITY ;
+        vec3 gridPos;
+        Particle(vec3 position,float mass) : r(position) , m(mass) {}
+>>>>>>> origin/master
         //virtual ~Particle();
         void draw(){
-           glColor3d(0,0.5f,0.5f);
+           glColor3d(0,0.5f-v.length()*0.1f,0.5f);
 
-            /*glPushMatrix();
+            glPushMatrix();
                 glTranslated(r.x,r.y,r.z);
                 glutSolidSphere(0.05f,10,10);
-            glPopMatrix();*/
-
+            glPopMatrix();
+/*
             glPushMatrix();
             glPointSize(1.0f);
 
@@ -34,7 +43,7 @@ class Particle
 			glVertex3f(r.x,r.y,r.z);
             glEnd();
              glPopMatrix();
-
+*/
 
         }
 

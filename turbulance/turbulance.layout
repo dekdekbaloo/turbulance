@@ -1,16 +1,26 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <CodeBlocks_layout_file>
 	<ActiveTarget name="Debug" />
+<<<<<<< HEAD
 	<File name="main.cpp" open="1" top="1" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
 			<Cursor1 position="1092" topLine="306" />
 		</Cursor>
 	</File>
 	<File name="include\Plane.h" open="1" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+=======
+	<File name="include\kernel.h" open="1" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="0" topLine="0" />
+			<Cursor1 position="598" topLine="8" />
 		</Cursor>
 	</File>
+	<File name="include\algebra3.h" open="1" top="0" tabpos="1" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+>>>>>>> origin/master
+		<Cursor>
+			<Cursor1 position="3965" topLine="172" />
+		</Cursor>
+	</File>
+<<<<<<< HEAD
 	<File name="include\Particle.h" open="1" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
 			<Cursor1 position="243" topLine="0" />
@@ -22,8 +32,21 @@
 		</Cursor>
 	</File>
 	<File name="include\kernel.h" open="1" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+=======
+	<File name="include\Plane.h" open="1" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="179" topLine="0" />
+			<Cursor1 position="0" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="include\Particle.h" open="1" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="157" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="main.cpp" open="1" top="1" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+>>>>>>> origin/master
+		<Cursor>
+			<Cursor1 position="699" topLine="117" />
 		</Cursor>
 	</File>
 </CodeBlocks_layout_file>
