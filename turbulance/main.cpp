@@ -19,6 +19,7 @@
 #include "include/Plane.h"
 #include "include/Particle.h"
 #include "include/Kernel.h"
+#include "include/Collision.h"
 #include <vector>
 #include <stdlib.h>
 #include <map>
@@ -26,8 +27,13 @@
 #include <math.h>
 #include <stdio.h>
 
+<<<<<<< HEAD
 // #define W_VISCOSITY_CONT 0.000894f
 #define W_VISCOSITY_CONT 1.80f
+=======
+ //#define W_VISCOSITY_CONT 0.000894f
+#define W_VISCOSITY_CONT 4.80f
+>>>>>>> f80dad543073e33198c19e089b6b38f1551397a5
 #define K_GAS 0.082057f
 #define K_GAS_NEAR 0.1f
 #define K_TENSION 0.000004f
@@ -39,8 +45,13 @@
 #define SURFACE_THRESHOLD 0.01f
 
 static float gridSize = 0.2f;
+<<<<<<< HEAD
 static float GRAVITY = -9.8f ;
 static int numBall = 100;
+=======
+static float GRAVITY = -2.5f ;
+static int numBall = 10;
+>>>>>>> f80dad543073e33198c19e089b6b38f1551397a5
 static float startX = -0.5f;;
 static float sizeX = 1.0f;
 static float startY = -1.4f;
@@ -48,6 +59,8 @@ static float sizeY = 100; //Not yet used
 static float startZ = -6.0f;
 static float sizeZ = 1.0f;
 static float c_rad = 4.0f;
+
+static Collision coll;
 
 struct CompareVectors
 {
@@ -283,6 +296,7 @@ static void update(){
             }
         }
 
+<<<<<<< HEAD
         // Calculate Total Force
         if (f_tension_norm.length() > SURFACE_THRESHOLD )  (-K_TENSION * f_tension ) * f_tension_norm / (f_tension_norm.length() +0.0001f) ;
         else f_tension = 0 ;
@@ -302,6 +316,56 @@ static void update(){
         checkCollision(P[i]);
        // printVec3(P[i].v,"Ve ");
         //printf("Pos x = %.5f , y = %.5f ,z = %.5f \n",P[i].r.x,P[i].r.y,P[i].r.z);
+=======
+        f_tension = f_tension * (K_TENSION /P[i].m);
+        f_viscosity = -1*f_viscosity;
+
+        total_a = (f_viscosity + f_pressure + f_tension  ) / WATER_DENSITY ;
+       // printVec3(f_tension,"Tension");
+      //  printf("A : %f %f %f \n",total_a.x,total_a.y,total_a.z);
+
+        // printf("index : %d acc = %.12f\n",i,f_viscosity.length());
+        // printf("Acc x = %.5f , y = %.5f ,z = %.5f \n",total_a.x,total_a.y,total_a.z);
+        P[i].v = P[i].v + total_a*dt/1000;
+        P[i].v.y += GRAVITY*dt/1000;
+        P[i].r+= P[i].v*dt/1000;
+
+        //Collision checking
+        /*for(int j=0;j<P.size();j++){
+
+            if(i!=j){
+                if(coll.collide(P[i],P[j])){
+                    coll.resolve(P[i],P[j]);
+                    coll.correction(P[i],P[j]);
+                }
+            }
+        }*/
+        if(P[i].r.y<= startY){
+            P[i].r.y= startY;
+            //P[i].v.y = 0;
+            P[i].v.y= -0.2f*P[i].v.y;
+            P[i].v.x*=0.98f;
+            P[i].v.z*=0.98f;
+        }
+        if(P[i].r.x<= startX){
+            P[i].r.x= startX;
+            P[i].v.x=-0.9f*P[i].v.x;
+        }
+        if(P[i].r.x>= startX+sizeX){
+            P[i].r.x= startX+sizeX;
+            P[i].v.x=-0.9f*P[i].v.x;
+        }
+        if(P[i].r.z<= startZ){
+            P[i].r.z= startZ;
+            P[i].v.z=-0.9f*P[i].v.z;
+        }
+        if(P[i].r.z>= startZ+sizeZ){
+            P[i].r.z= startZ+sizeZ;
+            P[i].v.z=-0.9f*P[i].v.z;
+        }
+
+        //printf("Pos x = %.5f , y = %.5f ,z = %.5f ",P[i].r.x,P[i].r.y,P[i].r.z);
+>>>>>>> f80dad543073e33198c19e089b6b38f1551397a5
     }
 
 }
@@ -342,6 +406,19 @@ static void display(void)
 
 static void key(unsigned char key, int x, int y)
 {
+    if(key==' '){
+
+        float rx=x/(float)glutGet(GLUT_WINDOW_WIDTH)-0.5f;
+        float ry=-1*(y/(float)glutGet(GLUT_WINDOW_HEIGHT)-0.5f);
+
+        //cout<<rx<<':'<<ry<<endl;
+        Particle part(vec3 (rx*5,ry*5,-5),1.0);
+        part.v = vec3 (0,0,-2);
+        vec3 newGridPos = part.r/gridSize;
+        gridMap[newGridPos].push_back(++numBall);
+
+        P.push_back(part);
+    }
     glutPostRedisplay();
 }
 
@@ -374,8 +451,8 @@ void mouseMove(int x, int y) {
         angle=deltaAngle;
 
 		// update camera's direction
-		lx = sin(angle + deltaAngle);
-		lz = -cos(angle + deltaAngle);
+		lx = sin(deltaAngle);
+		lz = -cos(deltaAngle);
 	}
 	xOrigin=x;
 
@@ -429,7 +506,7 @@ int main(int argc, char *argv[])
     glutKeyboardFunc(key);
     glutIdleFunc(idle);
 
-    glClearColor(0,0,0,1);
+    glClearColor(0,0,0,0);
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
 
@@ -440,6 +517,8 @@ int main(int argc, char *argv[])
     glEnable(GL_NORMALIZE);
     glEnable(GL_COLOR_MATERIAL);
     glEnable(GL_LIGHTING);
+
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); glEnable( GL_BLEND );
 
     glLightfv(GL_LIGHT0, GL_AMBIENT,  light_ambient);
     glLightfv(GL_LIGHT0, GL_DIFFUSE,  light_diffuse);
