@@ -8,8 +8,10 @@
 	<vector>
 	<stdlib.h>
 
-1431843240 c:\program files (x86)\codeblocks\mingw\include\gl\glut.h
-	"freeglut_std.h"
+1432112400 c:\program files (x86)\codeblocks\mingw\include\gl\glut.h
+	<windows.h>
+	<GL/gl.h>
+	<GL/glu.h>
 
 1301111162 c:\program files (x86)\codeblocks\mingw\include\windows.h
 	<winresrc.h>
@@ -60,11 +62,11 @@
 
 1301111162 c:\program files (x86)\codeblocks\mingw\include\winerror.h
 
-1341010376 c:\program files (x86)\codeblocks\mingw\include\string.h
+1341006776 c:\program files (x86)\codeblocks\mingw\include\string.h
 	<_mingw.h>
 	<stddef.h>
 
-1341010370 c:\program files (x86)\codeblocks\mingw\include\_mingw.h
+1341006770 c:\program files (x86)\codeblocks\mingw\include\_mingw.h
 
 1301111148 c:\program files (x86)\codeblocks\mingw\include\basetsd.h
 
@@ -132,7 +134,7 @@
 
 1301111158 c:\program files (x86)\codeblocks\mingw\include\rpcnterr.h
 
-1341010372 c:\program files (x86)\codeblocks\mingw\include\excpt.h
+1341006772 c:\program files (x86)\codeblocks\mingw\include\excpt.h
 	<_mingw.h>
 	<windef.h>
 
@@ -194,7 +196,7 @@
 	<objidl.h>
 	<cguid.h>
 
-1341010376 c:\program files (x86)\codeblocks\mingw\include\stdlib.h
+1341006776 c:\program files (x86)\codeblocks\mingw\include\stdlib.h
 	<_mingw.h>
 	<stddef.h>
 
@@ -257,10 +259,10 @@
 	<math.h>
 	<iostream>
 
-1341010370 c:\program files (x86)\codeblocks\mingw\include\assert.h
+1341006770 c:\program files (x86)\codeblocks\mingw\include\assert.h
 	<_mingw.h>
 
-1341010374 c:\program files (x86)\codeblocks\mingw\include\math.h
+1341006774 c:\program files (x86)\codeblocks\mingw\include\math.h
 	<_mingw.h>
 
 1431944356 source:d:\aunaun\realtime\turbulance\src\plane.cpp
@@ -314,13 +316,13 @@
 	<cmath>
 	<stdio.h>
 
-1341010376 c:\program files (x86)\codeblocks\mingw\include\stdio.h
+1341006776 c:\program files (x86)\codeblocks\mingw\include\stdio.h
 	<_mingw.h>
 	<stddef.h>
 	<stdarg.h>
 	<sys/types.h>
 
-1341010380 c:\program files (x86)\codeblocks\mingw\include\sys\types.h
+1341006780 c:\program files (x86)\codeblocks\mingw\include\sys\types.h
 	<_mingw.h>
 	<stddef.h>
 
@@ -340,4 +342,39 @@
 
 1341010376 c:\program files (x86)\codeblocks\mingw\include\stdint.h
 	<stddef.h>
+
+1432184367 source:c:\users\bankde\desktop\github\turbulance\main.cpp
+	<GL/gl.h>
+	<GL/glu.h>
+	<GL/glut.h>
+	<windows.h>
+	"include/Plane.h"
+	"include/Particle.h"
+	"include/Kernel.h"
+	<vector>
+	<stdlib.h>
+	<map>
+	<set>
+	<math.h>
+	<stdio.h>
+
+1432107628 c:\users\bankde\desktop\github\turbulance\include\plane.h
+	"algebra3.h"
+	<GL/glut.h>
+
+1432107628 c:\users\bankde\desktop\github\turbulance\include\algebra3.h
+	<stdlib.h>
+	<assert.h>
+	<math.h>
+	<iostream>
+
+1432135946 c:\users\bankde\desktop\github\turbulance\include\particle.h
+	"algebra3.h"
+	<GL/glut.h>
+
+1432118591 c:\users\bankde\desktop\github\turbulance\include\kernel.h
+	"algebra3.h"
+	<GL/glut.h>
+	<cmath>
+	<stdio.h>
 

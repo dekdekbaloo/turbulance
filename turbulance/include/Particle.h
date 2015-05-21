@@ -14,8 +14,8 @@ class Particle
         vec3 v;
         float m;
         float density = WATER_DENSITY ;
-        vec3 gridPos;
-        Particle(vec3 position,float mass) : r(position) , m(mass) {}
+        coord gridPos;
+        Particle(vec3 position,float mass) : r(position) , m(mass) , gridPos(0,0,0) {}
         //virtual ~Particle();
         void draw(){
            glColor3d(0,0.5f,0.5f);

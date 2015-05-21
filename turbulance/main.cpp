@@ -17,7 +17,6 @@
 #include <GL/glut.h>
 #include <windows.h>
 #include "include/Plane.h"
-#include "include/Particle.h"
 #include "include/Kernel.h"
 #include <vector>
 #include <stdlib.h>
@@ -31,26 +30,64 @@
 #define K_GAS 0.082057f
 #define K_TENSION 0.04f
 #define GLEW_STATIC 50
+#define WATER_DENSITY  998.8f
 
-static float gridSize = 0.2f;
+static float gridSize = 0.1f;
 static float GRAVITY = -2.5f ;
 static int numBall = 1500;
 static float startX = -0.5f;;
-static float sizeX = 1.0f;
+static float sizeX = 3.0f;
 static float startY = -1.4f;
 static float sizeY = 100; //Not yet used
 static float startZ = -6.0f;
-static float sizeZ = 1.0f;
+static float sizeZ = 2.0f;
 
-struct CompareVectors
-{
-    bool operator()(const vec3& a, const vec3& b)
-    {
-        return (a.x == b.x) && (a.y == b.y) && (a.z == b.z);
+struct coord {
+    float x, y, z;
+
+    bool operator==(const coord &o) const {
+        return x == o.x && y == o.y && z == o.z;
     }
+
+    bool operator<(const coord &o) const {
+        return x < o.x || (x == o.x && y < o.y) || (x == o.x && y == o.y && z < o.z);
+    }
+    coord(float a, float b, float c) : x(a) , y(b) , z(c) {}
 };
 
-typedef map<vec3, vector<int>, CompareVectors> VectorMap;
+class Particle
+{
+    private:
+
+    public:
+        vec3 r;
+        vec3 v;
+        float m;
+        float density = WATER_DENSITY ;
+        coord gridPos;
+        Particle(vec3 position,float mass) : r(position) , m(mass), gridPos(coord(0.0f,0.0f,0.f)) {}
+        //virtual ~Particle();
+        void draw(){
+           glColor3d(0,0.5f,0.5f);
+
+            glPushMatrix();
+                glTranslated(r.x,r.y,r.z);
+                glutSolidSphere(0.1f,10,10);
+            glPopMatrix();
+
+//            glPushMatrix();
+//            glPointSize(1.0f);
+//
+//            glColor3f(v.x*2, v.y*2,v.z*5 );
+//
+//            glBegin(GL_POINTS);
+//			glVertex3f(r.x,r.y,r.z);
+//            glEnd();
+             glPopMatrix();
+        }
+};
+
+typedef map<coord, vector<int> > VectorMap;
 
 float deltaAngle = 0.0f;
 int buttonState=0;
@@ -67,185 +104,6 @@ static vector<Particle> P;
 Plane plane;
 static VectorMap gridMap;
 
-/*void set_shaders()
-{
-	char *vs=NULL;
-	char *fs=NULL;
-
-	vs=(char *)malloc(sizeof(char)*10000);
-	fs=(char *)malloc(sizeof(char)*10000);
-	memset(vs, 0, sizeof(char)*10000);
-	memset(fs, 0, sizeof(char)*10000);
-
-	FILE *fp;
-	char c;
-	int count;
-
-	fp=fopen("Shader/shader.vs", "r");
-	count=0;
-	while((c=fgetc(fp)) != EOF)
-	{
-		vs[count]=c;
-		count++;
-	}
-	fclose(fp);
-
-	fp=fopen("Shader/shader.fs", "r");
-	count=0;
-	while((c=fgetc(fp)) != EOF)
-	{
-		fs[count]=c;
-		count++;
-	}
-	fclose(fp);
-
-	v=glCreateShader(GL_VERTEX_SHADER);
-	f=glCreateShader(GL_FRAGMENT_SHADER);
-
-	const char *vv;
-	const char *ff;
-	vv=vs;
-	ff=fs;
-
-	glShaderSource(v, 1, &vv, NULL);
-	glShaderSource(f, 1, &ff, NULL);
-
-	int success;
-
-	glCompileShader(v);
-	glGetShaderiv(v, GL_COMPILE_STATUS, &success);
-	if(!success)
-	{
-		char info_log[5000];
-		glGetShaderInfoLog(v, 5000, NULL, info_log);
-		printf("Error in vertex shader compilation!\n");
-		printf("Info Log: %s\n", info_log);
-	}
-
-	glCompileShader(f);
-	glGetShaderiv(f, GL_COMPILE_STATUS, &success);
-	if(!success)
-	{
-		char info_log[5000];
-		glGetShaderInfoLog(f, 5000, NULL, info_log);
-		printf("Error in fragment shader compilation!\n");
-		printf("Info Log: %s\n", info_log);
-	}
-
-	p=glCreateProgram();
-	glAttachShader(p, v);
-	glAttachShader(p, f);
-	glLinkProgram(p);
-	glUseProgram(p);
-
-	free(vs);
-	free(fs);
-}*/
-/*
-static void set_shaders(){
-    std::string vertexSource = "Shader/shader.vs" ;
-    std::string fragmentSource = "Shader/shader.fs" ;
-    v = glCreateShader(GL_VERTEX_SHADER);
-
-    //Send the vertex shader source code to GL
-    //Note that std::string's .c_str is NULL character terminated.
-    const GLchar *source = (const GLchar *)vertexSource.c_str();
-    glShaderSource(v, 1, &source, 0);
-
-    //Compile the vertex shader
-    glCompileShader(v);
-
-    GLint isCompiled = 0;
-    glGetShaderiv(v, GL_COMPILE_STATUS, &isCompiled);
-    if(isCompiled == GL_FALSE)
-    {
-        GLint maxLength = 0;
-        glGetShaderiv(v, GL_INFO_LOG_LENGTH, &maxLength);
-
-        //The maxLength includes the NULL character
-        std::vector<GLchar> infoLog(maxLength);
-        glGetShaderInfoLog(v, maxLength, &maxLength, &infoLog[0]);
-
-        //We don't need the shader anymore.
-        glDeleteShader(v);
-
-        //Use the infoLog as you see fit.
-        //In this simple program, we'll just leave
-        return;
-    }
-    f = glCreateShader(GL_FRAGMENT_SHADER);
-
-    //Send the fragment shader source code to GL
-    //Note that std::string's .c_str is NULL character terminated.
-    source = (const GLchar *)fragmentSource.c_str();
-    glShaderSource(f, 1, &source, 0);
-
-    //Compile the fragment shader
-    glCompileShader(f);
-
-    glGetShaderiv(f, GL_COMPILE_STATUS, &isCompiled);
-    if(isCompiled == GL_FALSE)
-    {
-        GLint maxLength = 0;
-        glGetShaderiv(f, GL_INFO_LOG_LENGTH, &maxLength);
-
-        //The maxLength includes the NULL character
-        std::vector<GLchar> infoLog(maxLength);
-        glGetShaderInfoLog(f, maxLength, &maxLength, &infoLog[0]);
-
-        //We don't need the shader anymore.
-        glDeleteShader(f);
-        //Either of them. Don't leak shaders.
-        glDeleteShader(v);
-
-        //Use the infoLog as you see fit.
-
-        //In this simple program, we'll just leave
-        return;
-    }else{
-        printf("Ready!");
-    }
-
-    //Vertex and fragment shaders are successfully compiled.
-    //Now time to link them together into a program.
-    //Get a program object.
-    p = glCreateProgram();
-
-    //Attach our shaders to our program
-    glAttachShader(p, v);
-    glAttachShader(p, f);
-
-    //Link our program
-    glLinkProgram(p);
-
-    //Note the different functions here: glGetProgram* instead of glGetShader*.
-    GLint isLinked = 0;
-    glGetProgramiv(p, GL_LINK_STATUS, (int *)&isLinked);
-    if(isLinked == GL_FALSE)
-    {
-        GLint maxLength = 0;
-        glGetProgramiv(p, GL_INFO_LOG_LENGTH, &maxLength);
-
-        //The maxLength includes the NULL character
-        std::vector<GLchar> infoLog(maxLength);
-        glGetProgramInfoLog(p, maxLength, &maxLength, &infoLog[0]);
-
-        //We don't need the program anymore.
-        glDeleteProgram(p);
-        //Don't leak shaders either.
-        glDeleteShader(v);
-        glDeleteShader(f);
-
-        //Use the infoLog as you see fit.
-
-        //In this simple program, we'll just leave
-        return;
-    }
-
-    //Always detach shaders after a successful link.
-    glDetachShader(p, v);
-    glDetachShader(p, f);
-}*/
 static void printVec3(vec3 a , const char *string)
 {
     printf (string);
@@ -258,7 +116,7 @@ static void init(){
         int kx = rand()%500 ;
         int ky = rand()%200 ;
         int kz = rand()%200 ;
-        Particle part(vec3 (0.5+0.003*kx,0.1+0.02*ky,6-0.01*kz),1.0);
+        Particle part(vec3 (0.5+0.003*kx,0.1+0.02*ky,-6+0.01*kz),1.0);
 
         //Particle part(vec3 (0.5,0.1,6),1.0);
 
@@ -266,7 +124,11 @@ static void init(){
         //part.v.z = rand()%100/100000.0 ;
         part.v = vec3 (0,0,0);
         vec3 newGridPos = part.r/gridSize;
-        gridMap[newGridPos].push_back(i);
+        newGridPos.x = (int)(newGridPos.x);
+        newGridPos.y = (int)(newGridPos.y);
+        newGridPos.z = (int)(newGridPos.z);
+        coord co(newGridPos.x,newGridPos.y,newGridPos.z);
+        part.gridPos = co;
 
         P.push_back(part);
     }
@@ -314,38 +176,54 @@ static void update(){
 
     gridMap.clear();
 
+    for(int a = (int)(startX/gridSize); a < (int)(sizeX/gridSize); a++)
+    {
+        for(int b = (int)(startX/gridSize); b < (int)(sizeX/gridSize); b++)
+        {
+            for(int c = (int)(startX/gridSize); c < (int)(sizeX/gridSize); c++)
+            {
+                coord v(a,b,c);
+                gridMap[v] = vector<int>();
+            }
+
+        }
+
+    }
+
     for(int i = 0; i < P.size();i++)
     {
         vec3 newGridPos = P[i].r/gridSize;
         newGridPos.x = (int)(newGridPos.x);
         newGridPos.y = (int)(newGridPos.y);
         newGridPos.z = (int)(newGridPos.z);
-        //if (test%10) cout << newGridPos.x << " " << newGridPos.y << " " << newGridPos.z << endl;
-        gridMap[newGridPos].push_back(i);
+        coord c(newGridPos.x,newGridPos.y,newGridPos.z);
+        P[i].gridPos = c;
+        //cout << newGridPos.x << " " << newGridPos.y << " " << newGridPos.z << endl;
+        gridMap[c].push_back(i);
+        //cout << gridMap[c].size() << endl;
     }
+
+    //cout << endl << endl << endl;
 
     for(int i=0;i<P.size();i++){
         vec3 total_a(0.0f,0.0f,0.0f) ;
         vec3 f_viscosity(0.0f,0.0f,0.0f);
         vec3 f_pressure(0.0f,0.0f,0.0f);
         vec3 f_tension(0.0f,0.0f,0.0f);
-
+        //int co = 0;
         int gridX = P[i].gridPos.x;
         int gridY = P[i].gridPos.y;
         int gridZ = P[i].gridPos.z;
         for(int a = -1; a < 2; a++)
         {
             gridX = gridX + a;
-            if (gridX < 0) continue;
             for (int b = -1; b < 2; b++)
             {
                 gridY = gridY + b;
-                if (gridY < 0) continue;
                 for (int c = -1; c < 2; c++)
                 {
                     gridZ = gridZ + c;
-                    if (gridZ < 0) continue;
-                    vec3 gridKey = vec3(gridX,gridY,gridZ);
+                    coord gridKey = coord(gridX,gridY,gridZ);
 
                     //cout << gridKey.x << " " << gridKey.y << " " << gridKey.z << endl;
 
@@ -357,14 +235,18 @@ static void update(){
                         if(i == *it){}
                         else
                         {
+                            //co++ ;
+                            //cout << gridMap[gridKey].size() << " " << gridKey.x << " " << gridKey.y << " " << gridKey.z << "   " << *it << endl;
                             f_viscosity +=  P[*it].m*(P[*it].v-P[i].v)/P[*it].density * wGradient2ViscosityKernel(P[i].r ,P[*it].r) ;
                             f_pressure += P[*it].m*(2*K_GAS*P[*it].density)/(2*P[*it].density) * wGradientSpikyKernel(P[i].r ,P[*it].r) ;
                             f_tension += P[*it].m * wGradientSpikyKernel(P[i].r,P[*it].r).length()*(P[i].r -P[*it].r);
                         }
                     }
+                    //cout << endl << endl;
                 }
             }
         }
+        //printf("n = %d\n", co);
 
         f_tension = f_tension * (K_TENSION /P[i].m);
         f_viscosity = -1*f_viscosity;
@@ -375,6 +257,7 @@ static void update(){
 
         // printf("index : %d acc = %.12f\n",i,f_viscosity.length());
         // printf("Acc x = %.5f , y = %.5f ,z = %.5f \n",total_a.x,total_a.y,total_a.z);
+        //dt = 10;
         P[i].v = P[i].v + total_a*dt/1000;
         P[i].v.y += GRAVITY*dt/1000;
         P[i].r+= P[i].v*dt/1000;
@@ -403,6 +286,22 @@ static void update(){
         }
         //printf("Pos x = %.5f , y = %.5f ,z = %.5f ",P[i].r.x,P[i].r.y,P[i].r.z);
     }
+
+//    test++ ;
+//    if (test>1) {
+//        for(map<vec3, vector<int>, CompareVectors>::iterator it1 = gridMap.begin(); it1 != gridMap.end(); it1++)
+//        {
+//            cout << it1->first.x << " " << it1->first.y << " " << it1->first.z << " has " << it1->second.size() << endl;
+////            for (vector<int>::iterator it2 = it1->second.begin(); it2 != it1->second.end(); it2++)
+////            {
+////                cout << *it2 << " ";
+////            }
+////            cout << endl;
+//        }
+//        cout << endl;
+//        //while(1) {}
+//    }
+
 
     //for (int i = 0; i < )
 }
@@ -486,9 +385,9 @@ void mouseMove(int x, int y) {
 static void idle(void)
 {
     glutPostRedisplay();
-//    test++ ;
-//    if (test % 100 ) {
-//        for(map<vec3, vector<int>, CompareVectors>::iterator it1 = gridMap.begin(); it1 != gridMap.end(); it1++)
+    test++ ;
+//    if (test>1) {
+//        for(map<coord, vector<int> >::iterator it1 = gridMap.begin(); it1 != gridMap.end(); it1++)
 //        {
 //            cout << it1->first.x << " " << it1->first.y << " " << it1->first.z << " has " << it1->second.size() << endl;
 ////            for (vector<int>::iterator it2 = it1->second.begin(); it2 != it1->second.end(); it2++)
@@ -497,6 +396,7 @@ static void idle(void)
 ////            }
 ////            cout << endl;
 //        }
+//        cout << endl;
 //        //while(1) {}
 //    }
 }
