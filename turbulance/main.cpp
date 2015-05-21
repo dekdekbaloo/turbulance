@@ -27,13 +27,9 @@
 #include <math.h>
 #include <stdio.h>
 
-<<<<<<< HEAD
+
 // #define W_VISCOSITY_CONT 0.000894f
 #define W_VISCOSITY_CONT 1.80f
-=======
- //#define W_VISCOSITY_CONT 0.000894f
-#define W_VISCOSITY_CONT 4.80f
->>>>>>> f80dad543073e33198c19e089b6b38f1551397a5
 #define K_GAS 0.082057f
 #define K_GAS_NEAR 0.1f
 #define K_TENSION 0.000004f
@@ -45,13 +41,8 @@
 #define SURFACE_THRESHOLD 0.01f
 
 static float gridSize = 0.2f;
-<<<<<<< HEAD
 static float GRAVITY = -9.8f ;
-static int numBall = 100;
-=======
-static float GRAVITY = -2.5f ;
-static int numBall = 10;
->>>>>>> f80dad543073e33198c19e089b6b38f1551397a5
+static int numBall = 400;
 static float startX = -0.5f;;
 static float sizeX = 1.0f;
 static float startY = -1.4f;
@@ -119,7 +110,6 @@ static void resize(int width, int height)
     const float ar = (float) width / (float) height;
 
     glViewport(0, 0, width, height);
-
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glFrustum(-ar, ar, -1.0, 1.0, 2.0, 100.0);
@@ -134,7 +124,7 @@ void calculatePressure()
         //iterate over neighbor grid cell!
         for (size_t i = 0 ; i < P.size() ; i++){
 
-            float density = 88.0f;
+            float density = 100.0f;
             float nearDensity = 0;
             Particle &pi = P[i] ;
             int co = 0 ;
@@ -178,12 +168,12 @@ void calculatePressure()
                 vec3 dis = pi.r - pj.r ;
                 if (dis.length() > H*H) continue ;
                 co++;
-                printVec3(pi.r ,"Pi.r ");
-                printVec3(pj.r ,"Pj.r ");
+                //printVec3(pi.r ,"Pi.r ");
+                //printVec3(pj.r ,"Pj.r ");
                 density += wPoly6Kernel(pi.r , pj.r);
             }
         pi.density = density;
-        printf("part: %d , total n: %d , dens = %.5f \n",i,co,density);
+        //printf("part: %d , total n: %d , dens = %.5f \n",i,co,density);
         //pi.nearDensity = nearDensity;
         pi.P = K_GAS * (density - REST_DENSITY);
         //pi.nearP = K_GAS_NEAR * nearDensity;
@@ -296,76 +286,26 @@ static void update(){
             }
         }
 
-<<<<<<< HEAD
         // Calculate Total Force
-        if (f_tension_norm.length() > SURFACE_THRESHOLD )  (-K_TENSION * f_tension ) * f_tension_norm / (f_tension_norm.length() +0.0001f) ;
+        if (f_tension_norm.length() > SURFACE_THRESHOLD ) f_tension = (-K_TENSION * f_tension ) * f_tension_norm / (f_tension_norm.length() +0.0001f) ;
         else f_tension = 0 ;
         f_viscosity = f_viscosity;
         f_pressure = -f_pressure ;
        // printf("Part %d Neigh= %d \n",i,co);
         total_a = (f_viscosity + f_tension   ) / P[i].density ;
-        //printVec3(f_viscosity,"V");
+        printVec3(f_tension,"T");
        // printVec3(total_a,"Total");
         // Update Position and Velocity
        // P[i].v = P[i].v + total_a*dt/1000;
         //P[i].v.y += GRAVITY*dt/1000;
-        dt=1;
+        //dt=1;
         P[i].prev_r = P[i].r ;
         P[i].r += P[i].v*dt/1000 +(total_a+vec3(0.0f,GRAVITY,0.0f))*dt/1000*dt/1000;
         P[i].v =  (P[i].r - P[i].prev_r )/dt*1000;
         checkCollision(P[i]);
        // printVec3(P[i].v,"Ve ");
         //printf("Pos x = %.5f , y = %.5f ,z = %.5f \n",P[i].r.x,P[i].r.y,P[i].r.z);
-=======
-        f_tension = f_tension * (K_TENSION /P[i].m);
-        f_viscosity = -1*f_viscosity;
 
-        total_a = (f_viscosity + f_pressure + f_tension  ) / WATER_DENSITY ;
-       // printVec3(f_tension,"Tension");
-      //  printf("A : %f %f %f \n",total_a.x,total_a.y,total_a.z);
-
-        // printf("index : %d acc = %.12f\n",i,f_viscosity.length());
-        // printf("Acc x = %.5f , y = %.5f ,z = %.5f \n",total_a.x,total_a.y,total_a.z);
-        P[i].v = P[i].v + total_a*dt/1000;
-        P[i].v.y += GRAVITY*dt/1000;
-        P[i].r+= P[i].v*dt/1000;
-
-        //Collision checking
-        /*for(int j=0;j<P.size();j++){
-
-            if(i!=j){
-                if(coll.collide(P[i],P[j])){
-                    coll.resolve(P[i],P[j]);
-                    coll.correction(P[i],P[j]);
-                }
-            }
-        }*/
-        if(P[i].r.y<= startY){
-            P[i].r.y= startY;
-            //P[i].v.y = 0;
-            P[i].v.y= -0.2f*P[i].v.y;
-            P[i].v.x*=0.98f;
-            P[i].v.z*=0.98f;
-        }
-        if(P[i].r.x<= startX){
-            P[i].r.x= startX;
-            P[i].v.x=-0.9f*P[i].v.x;
-        }
-        if(P[i].r.x>= startX+sizeX){
-            P[i].r.x= startX+sizeX;
-            P[i].v.x=-0.9f*P[i].v.x;
-        }
-        if(P[i].r.z<= startZ){
-            P[i].r.z= startZ;
-            P[i].v.z=-0.9f*P[i].v.z;
-        }
-        if(P[i].r.z>= startZ+sizeZ){
-            P[i].r.z= startZ+sizeZ;
-            P[i].v.z=-0.9f*P[i].v.z;
-        }
-
-        //printf("Pos x = %.5f , y = %.5f ,z = %.5f ",P[i].r.x,P[i].r.y,P[i].r.z);
->>>>>>> f80dad543073e33198c19e089b6b38f1551397a5
     }
 
 }
@@ -375,6 +315,7 @@ static void display(void)
     glTranslatef(0,0,-5.5f);
     glRotatef(angle,0,1,0);
     glTranslatef(0,0,5.5f);
+
 
     // Test Vertex Shader
     glPushMatrix();

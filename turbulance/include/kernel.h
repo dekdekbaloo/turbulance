@@ -18,7 +18,6 @@ float wPoly6Kernel(vec3 ri, vec3 rj){
 	float r = rv.length();
 	float hr_term = (H * H - r * r);
 	float div = 64.0 * PI * POW_H_9;
-    printf("r : %f hr_term : %f  \n",r,hr_term);
 	if ( 0 <= r && r <= H)
         return 315.0f / div * 6 * r * hr_term * hr_term * hr_term ;
     else
