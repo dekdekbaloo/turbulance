@@ -17,9 +17,7 @@
 #include <GL/glut.h>
 #include <windows.h>
 #include "include/Plane.h"
-#include "include/Particle.h"
 #include "include/Kernel.h"
-#include "include/Collision.h"
 #include <vector>
 #include <stdlib.h>
 #include <map>
@@ -29,11 +27,13 @@
 
 
 // #define W_VISCOSITY_CONT 0.000894f
-#define W_VISCOSITY_CONT 0.894f
-#define K_GAS 8.314f
+#define W_VISCOSITY_CONT 4.894f
+#define K_GAS 0.8314f
 
-#define K_TENSION 0.00001f
+#define K_TENSION 0.004f
 #define GLEW_STATIC 50
+#define WATER_DENSITY  998.8f
+#define DENS 888.8f
 #define PI 3.141592653589
 #define NORM 20/(2*PI*H*H)
 #define NEARNORM 30/(2*PI*H*H)
@@ -44,24 +44,61 @@ static float gridSize = 0.2f;
 static float GRAVITY = -9.8f ;
 static int numBall = 200;
 static float startX = -0.5f;;
-static float sizeX = 1.0f;
+static float sizeX = 3.0f;
 static float startY = -1.4f;
 static float sizeY = 100; //Not yet used
 static float startZ = -6.0f;
 static float sizeZ = 1.0f;
 static float c_rad = 4.0f;
 
-static Collision coll;
+struct coord {
+    float x, y, z;
 
-struct CompareVectors
-{
-    bool operator()(const vec3& a, const vec3& b)
-    {
-        return (a.x == b.x) && (a.y == b.y) && (a.z == b.z);
+    bool operator==(const coord &o) const {
+        return x == o.x && y == o.y && z == o.z;
     }
+
+    bool operator<(const coord &o) const {
+        return x < o.x || (x == o.x && y < o.y) || (x == o.x && y == o.y && z < o.z);
+    }
+    coord(float a, float b, float c) : x(a) , y(b) , z(c) {}
 };
 
-typedef map<vec3, vector<int>, CompareVectors> VectorMap;
+class Particle
+{
+    private:
+
+    public:
+        vec3 r;
+        vec3 prev_r;
+        vec3 v;
+        float m;
+        float density = WATER_DENSITY ;
+        float P;
+        coord gridPos;
+        Particle(vec3 position,float mass) : r(position) , m(mass), gridPos(coord(0.0f,0.0f,0.f)) {}
+        //virtual ~Particle();
+        void draw(){
+           glColor3d(0,0.5f,0.5f);
+
+            glPushMatrix();
+                glTranslated(r.x,r.y,r.z);
+                glutSolidSphere(0.1f,10,10);
+            glPopMatrix();
+
+//            glPushMatrix();
+//            glPointSize(1.0f);
+//
+//            glColor3f(v.x*2, v.y*2,v.z*5 );
+//
+//            glBegin(GL_POINTS);
+//			glVertex3f(r.x,r.y,r.z);
+//            glEnd();
+             glPopMatrix();
+        }
+};
+
+typedef map<coord, vector<int> > VectorMap;
 
 float deltaAngle = 0.0f;
 int buttonState=0;
@@ -90,12 +127,15 @@ static void init(){
         Particle part(vec3 (0.5-0.01*kx,0.1-0.01*ky,-4-0.01*kz),1);
 
         //Particle part(vec3 (-2,0,-6),1) ;
+        //part.v.z = rand()%100/100000.0 ;
         part.v = vec3 (0,0,0);
-       /*part.v.z = rand()%100/100.0 ;
-       part.v.y = rand()%100/100.0 ;
-       part.v.x = rand()%100/100.0 ;*/
         vec3 newGridPos = part.r/gridSize;
-        gridMap[newGridPos].push_back(i);
+        newGridPos.x = (int)(newGridPos.x);
+        newGridPos.y = (int)(newGridPos.y);
+        newGridPos.z = (int)(newGridPos.z);
+        coord co(newGridPos.x,newGridPos.y,newGridPos.z);
+        part.gridPos = co;
+
         P.push_back(part);
     }
 }
@@ -117,6 +157,7 @@ static void resize(int width, int height)
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 }
+
 //Calculate Force
 
 void calculatePressure()
@@ -218,6 +259,7 @@ static void checkCollision(Particle &p)
             p.r = v ;
         }*/
 }
+
 static void update(){
     int currTime=glutGet(GLUT_ELAPSED_TIME);
     dt=(currTime-lastTime);
@@ -225,17 +267,37 @@ static void update(){
     dt=5;
 
     gridMap.clear();
+
+    for(int a = (int)(startX/gridSize); a < (int)(sizeX/gridSize); a++)
+    {
+        for(int b = (int)(startX/gridSize); b < (int)(sizeX/gridSize); b++)
+        {
+            for(int c = (int)(startX/gridSize); c < (int)(sizeX/gridSize); c++)
+            {
+                coord v(a,b,c);
+                gridMap[v] = vector<int>();
+            }
+
+        }
+
+    }
+
     for(int i = 0; i < P.size();i++)
     {
         vec3 newGridPos = P[i].r/gridSize;
         newGridPos.x = (int)(newGridPos.x);
         newGridPos.y = (int)(newGridPos.y);
         newGridPos.z = (int)(newGridPos.z);
-        //if (test%10) cout << newGridPos.x << " " << newGridPos.y << " " << newGridPos.z << endl;
-        gridMap[newGridPos].push_back(i);
+        coord c(newGridPos.x,newGridPos.y,newGridPos.z);
+        P[i].gridPos = c;
+        //cout << newGridPos.x << " " << newGridPos.y << " " << newGridPos.z << endl;
+        gridMap[c].push_back(i);
+        //cout << gridMap[c].size() << endl;
     }
 
-    calculatePressure() ;
+    //cout << endl << endl << endl;
+
+    dt = 3 ;
     for(int i=0;i<P.size();i++){
         vec3 total_a(0.0f,0.0f,0.0f) ;
         vec3 f_viscosity(0.0f,0.0f,0.0f);
@@ -249,21 +311,21 @@ static void update(){
         int gridX = P[i].gridPos.x;
         int gridY = P[i].gridPos.y;
         int gridZ = P[i].gridPos.z;
+
+        float density = DENS ;
+        float nearDensity = 0;
         for(int a = -1; a < 2; a++)
         {
             gridX = gridX + a;
-            if (gridX < 0) continue;
             for (int b = -1; b < 2; b++)
             {
                 gridY = gridY + b;
-                if (gridY < 0) continue;
                 for (int c = -1; c < 2; c++)
                 {
                     gridZ = gridZ + c;
-                    if (gridZ < 0) continue;
-                    vec3 gridKey = vec3(gridX,gridY,gridZ);
+                    coord gridKey = coord(gridX,gridY,gridZ);
 
-                    // cout << gridKey.x << " " << gridKey.y << " " << gridKey.z << endl;
+                    //cout << gridKey.x << " " << gridKey.y << " " << gridKey.z << endl;
 
                     //SPH
                     //Smoothing Kernel Wpoly6
@@ -272,23 +334,32 @@ static void update(){
                     {
                         vec3 rv = P[i].r-P[*it].r ;
                         float r = rv.length() ;
-                        if(i == *it){}
-                        else if ( 0 <= r && r <= H)
+                        if(i != *it && 0 <= r && r <= H)
                         {
-                            co++;
-                            f_viscosity +=  P[*it].m*(P[*it].v-P[i].v)/P[*it].density * wGradient2ViscosityKernel(P[i].r ,P[*it].r).length() ;
+                            co++ ;
+                            //cout << gridMap[gridKey].size() << " " << gridKey.x << " " << gridKey.y << " " << gridKey.z << "   " << *it << endl;
+                            Particle pj = P[*it];
+                            vec3 dis = P[i].r - pj.r ;
+                            if (dis.length() > H*H) continue ;
+                            density += wPoly6Kernel(P[i].r , pj.r);
+                            //co++;
+                            f_viscosity +=  P[*it].m*(P[*it].v-P[i].v)/P[*it].density * wGradient2ViscosityKernel(P[i].r ,P[*it].r) ;
                             f_pressure += P[*it].m*(P[*it].P+P[i].P)/(2*P[*it].density) * wGradientSpikyKernel(P[i].r ,P[*it].r) ;
                             //Calculate
                             f_tension += P[*it].m/P[*it].density * wGradient2SpikyKernel(P[i].r,P[*it].r);
                             f_tension_norm += P[*it].m/P[*it].density * wGradientSpikyKernel(P[i].r,P[*it].r) ;
                         }
                     }
+                    //cout << endl << endl;
                 }
             }
+            P[i].density = density;
+            P[i].P = K_GAS * (density - REST_DENSITY);
         }
 
         // Calculate Total Force
         if (f_tension_norm.length() > SURFACE_THRESHOLD )f_tension = (-K_TENSION * f_tension ) * f_tension_norm / (f_tension_norm.length() +0.0001f) ;
+
         else f_tension = 0 ;
         f_viscosity = f_viscosity;
         f_pressure = -f_pressure ;
@@ -299,7 +370,6 @@ static void update(){
         // Update Position and Velocity
        // P[i].v = P[i].v + total_a*dt/1000;
         //P[i].v.y += GRAVITY*dt/1000;
-
         P[i].prev_r = P[i].r ;
         P[i].r += P[i].v*dt/1000 +(total_a)*dt/1000*dt/1000;
         P[i].v =  (P[i].r - P[i].prev_r )/dt*1000;
@@ -307,7 +377,10 @@ static void update(){
        // printVec3(P[i].v,"Ve ");
         //printf("Pos x = %.5f , y = %.5f ,z = %.5f \n",P[i].r.x,P[i].r.y,P[i].r.z);
 
+
     }
+
+    //printf("\n\n");
 
 }
 
@@ -343,24 +416,12 @@ static void display(void)
 
     glPopMatrix();
     glutSwapBuffers();
+
 }
 
 
 static void key(unsigned char key, int x, int y)
 {
-    if(key==' '){
-
-        float rx=x/(float)glutGet(GLUT_WINDOW_WIDTH)-0.5f;
-        float ry=-1*(y/(float)glutGet(GLUT_WINDOW_HEIGHT)-0.5f);
-
-        //cout<<rx<<':'<<ry<<endl;
-        Particle part(vec3 (rx*5,ry*5,-5),1.0);
-        part.v = vec3 (0,0,-2);
-        vec3 newGridPos = part.r/gridSize;
-        gridMap[newGridPos].push_back(++numBall);
-
-        P.push_back(part);
-    }
     glutPostRedisplay();
 }
 
@@ -393,8 +454,8 @@ void mouseMove(int x, int y) {
         angle=deltaAngle;
 
 		// update camera's direction
-		lx = sin(deltaAngle);
-		lz = -cos(deltaAngle);
+		lx = sin(angle + deltaAngle);
+		lz = -cos(angle + deltaAngle);
 	}
 	xOrigin=x;
 
@@ -403,9 +464,9 @@ void mouseMove(int x, int y) {
 static void idle(void)
 {
     glutPostRedisplay();
-//    test++ ;
-//    if (test % 100 ) {
-//        for(map<vec3, vector<int>, CompareVectors>::iterator it1 = gridMap.begin(); it1 != gridMap.end(); it1++)
+    test++ ;
+//    if (test>1) {
+//        for(map<coord, vector<int> >::iterator it1 = gridMap.begin(); it1 != gridMap.end(); it1++)
 //        {
 //            cout << it1->first.x << " " << it1->first.y << " " << it1->first.z << " has " << it1->second.size() << endl;
 ////            for (vector<int>::iterator it2 = it1->second.begin(); it2 != it1->second.end(); it2++)
@@ -414,12 +475,9 @@ static void idle(void)
 ////            }
 ////            cout << endl;
 //        }
+//        cout << endl;
 //        //while(1) {}
 //    }
-       /* test++;
-        if(test > 4){
-            while(1){}
-        }*/
 }
 
 const GLfloat light_ambient[]  = { 0.0f, 0.0f, 0.0f, 1.0f };
@@ -448,7 +506,7 @@ int main(int argc, char *argv[])
     glutKeyboardFunc(key);
     glutIdleFunc(idle);
 
-    glClearColor(0,0,0,0);
+    glClearColor(0,0,0,1);
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
 
@@ -459,8 +517,6 @@ int main(int argc, char *argv[])
     glEnable(GL_NORMALIZE);
     glEnable(GL_COLOR_MATERIAL);
     glEnable(GL_LIGHTING);
-
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); glEnable( GL_BLEND );
 
     glLightfv(GL_LIGHT0, GL_AMBIENT,  light_ambient);
     glLightfv(GL_LIGHT0, GL_DIFFUSE,  light_diffuse);

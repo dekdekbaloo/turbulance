@@ -27,10 +27,10 @@ float wPoly6Kernel(vec3 ri, vec3 rj){
 vec3 wGradientPoly6Kernel(vec3 ri, vec3 rj){
     vec3 rv = ri-rj ;
 	float r = rv.length();
-	float hr_term = (H * H - r * r);
-	float div = 64.0 * PI * POW_H_9;
+	float coefficient = -945.0/(32.0*PI*POW_H_9);
+	float hr_term = H*H - r * r ;
 	if ( 0 <= r && r <= H)
-        return 315.0f / div * 6 * r * hr_term * hr_term * rv ;
+        return coefficient*hr_term*hr_term*rv ;
     else
         return vec3(0.0f,0.0f,0.0f) ;
 }
@@ -73,17 +73,17 @@ vec3 wGradientViscosityKernel(vec3 ri, vec3 rj){
         return vec3(0.0f,0.0f,0.0f) ;
 }
 
-vec3 wGradient2ViscosityKernel(vec3 ri, vec3 rj){
+float wGradient2ViscosityKernel(vec3 ri, vec3 rj){
 	vec3 rv = ri-rj ;
 	float r = rv.length() ;
-	if (r < 0.000001f) return  vec3(0.0f,0.0f,0.0f);
-	float hr_term = 1-r/H ;
-	float gradient_magnitude = 45.0f / ( PI * POW_H_5) * hr_term ;
-	float div = (rv.length() + 0.001f);
+	if (r < 0.000001f) return  0.0f;
+	//float hr_term = 1-r/H ;
+	float coefficient = 45.0f / ( PI * POW_H_6) ;
+	//float div = (rv.length() + 0.001f);
 	if ( 0 <= r && r <= H)
-        return ( gradient_magnitude * 1.0f / div )* rv;
+        return coefficient * (H-r);
     else
-        return vec3(0.0f,0.0f,0.0f) ;
+        return 0.0f ;
 }
 
 
