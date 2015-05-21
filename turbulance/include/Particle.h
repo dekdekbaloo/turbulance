@@ -11,9 +11,13 @@ class Particle
 
     public:
         vec3 r;
+        vec3 prev_r;
         vec3 v;
-        float m;
+        float m = 1.0f;
         float density = WATER_DENSITY ;
+        float nearDensity = WATER_DENSITY ;
+        float P = WATER_DENSITY ;
+        float nearP = WATER_DENSITY ;
         vec3 gridPos;
         Particle(vec3 position,float mass) : r(position) , m(mass) {}
         //virtual ~Particle();

@@ -27,20 +27,27 @@
 #include <stdio.h>
 
 // #define W_VISCOSITY_CONT 0.000894f
-#define W_VISCOSITY_CONT 4.80f
+#define W_VISCOSITY_CONT 1.80f
 #define K_GAS 0.082057f
-#define K_TENSION 0.04f
+#define K_GAS_NEAR 0.1f
+#define K_TENSION 0.000004f
 #define GLEW_STATIC 50
+#define PI 3.141592653589
+#define NORM 20/(2*PI*H*H)
+#define NEARNORM 30/(2*PI*H*H)
+#define REST_DENSITY 98.9f
+#define SURFACE_THRESHOLD 0.01f
 
 static float gridSize = 0.2f;
-static float GRAVITY = -2.5f ;
+static float GRAVITY = -9.8f ;
 static int numBall = 100;
 static float startX = -0.5f;;
-static float sizeX = 2.0f;
+static float sizeX = 1.0f;
 static float startY = -1.4f;
 static float sizeY = 100; //Not yet used
 static float startZ = -6.0f;
-static float sizeZ = 2.0f;
+static float sizeZ = 1.0f;
+static float c_rad = 4.0f;
 
 struct CompareVectors
 {
@@ -74,17 +81,17 @@ static void init(){
     for(int i=0;i<numBall;i++){
         int kx = rand()%500 ;
         int ky = rand()%200 ;
-        int kz = rand()%200 ;
-        Particle part(vec3 (0.5+0.003*kx,0.1+0.02*ky,6-0.01*kz),2.0);
-
-        //Particle part(vec3 (0.5,0.1,6),1.0);
+        int kz = rand()%500 ;
+        //Particle part(vec3 (-1,5,1) ,1.0f);
+        Particle part(vec3 (0.5-0.01*kx,0.1-0.01*ky,-4-0.01*kz),1.0);
 
         //Particle part(vec3 (-2,0,-6),1) ;
-        //part.v.z = rand()%100/100000.0 ;
         part.v = vec3 (0,0,0);
+       /*part.v.z = rand()%100/100.0 ;
+       part.v.y = rand()%100/100.0 ;
+       part.v.x = rand()%100/100.0 ;*/
         vec3 newGridPos = part.r/gridSize;
         gridMap[newGridPos].push_back(i);
-
         P.push_back(part);
     }
 }
@@ -109,13 +116,111 @@ static void resize(int width, int height)
 }
 //Calculate Force
 
+void calculatePressure()
+{
+        //iterate over neighbor grid cell!
+        for (size_t i = 0 ; i < P.size() ; i++){
+
+            float density = 88.0f;
+            float nearDensity = 0;
+            Particle &pi = P[i] ;
+            int co = 0 ;
+            int gridX = P[i].gridPos.x;
+            int gridY = P[i].gridPos.y;
+            int gridZ = P[i].gridPos.z;
+            /*
+            // Grid Methods
+            for(int a = -1; a < 2; a++)
+            {
+                gridX = gridX + a;
+                if (gridX < 0) continue;
+                for (int b = -1; b < 2; b++)
+                {
+                    gridY = gridY + b;
+                    if (gridY < 0) continue;
+                    for (int c = -1; c < 2; c++)
+                    {
+                        gridZ = gridZ + c;
+                        if (gridZ < 0) continue;
+                        vec3 gridKey = vec3(gridX,gridY,gridZ);
+
+                        for (vector<int>::iterator it = gridMap[gridKey].begin(); it != gridMap[gridKey].end(); it++)
+                        {
+                            if(i != *it){
+                                const Particle &pj = P[*it];
+                                vec3 dis = pi.r - pj.r ;
+                                co++;
+                                //printf("part: %d , part: %d , dis = %.5f \n",i,*it,dis.length());
+                                density += wPoly6Kernel(pi.r , pj.r);
+                            }
+                        }
+                    }
+                }
+            }*/
+            //Brute Force
+            for (size_t j = 0 ; j < P.size() ; j++){
+                if (i == j) continue ;
+
+                Particle &pj = P[j];
+                vec3 dis = pi.r - pj.r ;
+                if (dis.length() > H*H) continue ;
+                co++;
+                printVec3(pi.r ,"Pi.r ");
+                printVec3(pj.r ,"Pj.r ");
+                density += wPoly6Kernel(pi.r , pj.r);
+            }
+        pi.density = density;
+        printf("part: %d , total n: %d , dens = %.5f \n",i,co,density);
+        //pi.nearDensity = nearDensity;
+        pi.P = K_GAS * (density - REST_DENSITY);
+        //pi.nearP = K_GAS_NEAR * nearDensity;
+        //printf("Particle %d Neighbor =%d :Density=%.6f P=%.6f\n",i,c,pi.density,pi.P);
+    }
+}
+static void checkCollision(Particle &p)
+{
+    //Box Collision checking
+        if(p.r.y<= startY){
+            p.r.y= startY;
+            //p.v.y = 0;
+            p.v.y= -0.4f*p.v.y;
+
+        }
+        if(p.r.x<= startX){
+            p.r.x= startX;
+            p.v.x=-0.9f*p.v.x;
+        }
+        if(p.r.x>= startX+sizeX){
+            p.r.x= startX+sizeX;
+            p.v.x=-0.9f*p.v.x;
+        }
+        if(p.r.z<= startZ){
+            p.r.z= startZ;
+            p.v.z=-0.9f*p.v.z;
+        }
+        if(p.r.z>= startZ+sizeZ){
+            p.r.z= startZ+sizeZ;
+            p.v.z=-0.9f*p.v.z;
+        }
+    //Cylinder Collision checking
+       /*float xz = p.r.x*p.r.x + p.r.z*p.r.z ;
+       printf("x = %.5f , z = %.5f \n",p.r.x,p.r.z);
+        if(xz >= c_rad*c_rad){
+            p.r = vec3(p.prev_r.x, p.prev_r.y ,(p.prev_r.z/p.prev_r.z)*sqrtf(c_rad*c_rad - p.prev_r.x*p.prev_r.x) ) ;
+            vec3 r((p.r.x+p.prev_r.x)/2 , 0.0f , (p.r.z+p.prev_r.z)/2);
+            vec3 u = p.r - p.prev_r  ;
+            u.x = 0.0f ;
+            vec3 v = u - 2*(r*u)*r.normalize() ;
+            v.y = p.r.y ;
+            p.r = v ;
+        }*/
+}
 static void update(){
     int currTime=glutGet(GLUT_ELAPSED_TIME);
     dt=(currTime-lastTime);
     lastTime=currTime;
 
     gridMap.clear();
-
     for(int i = 0; i < P.size();i++)
     {
         vec3 newGridPos = P[i].r/gridSize;
@@ -126,12 +231,17 @@ static void update(){
         gridMap[newGridPos].push_back(i);
     }
 
+    calculatePressure() ;
     for(int i=0;i<P.size();i++){
         vec3 total_a(0.0f,0.0f,0.0f) ;
         vec3 f_viscosity(0.0f,0.0f,0.0f);
         vec3 f_pressure(0.0f,0.0f,0.0f);
         vec3 f_tension(0.0f,0.0f,0.0f);
+        vec3  f_tension_norm(0.0f,0.0f,0.0f);
 
+        //P[i].r += P[i].v*dt/300 ;
+
+        int co = 0 ;
         int gridX = P[i].gridPos.x;
         int gridY = P[i].gridPos.y;
         int gridZ = P[i].gridPos.z;
@@ -149,64 +259,51 @@ static void update(){
                     if (gridZ < 0) continue;
                     vec3 gridKey = vec3(gridX,gridY,gridZ);
 
-                    //cout << gridKey.x << " " << gridKey.y << " " << gridKey.z << endl;
+                    // cout << gridKey.x << " " << gridKey.y << " " << gridKey.z << endl;
 
                     //SPH
                     //Smoothing Kernel Wpoly6
                     //Viscosity
                     for (vector<int>::iterator it = gridMap[gridKey].begin(); it != gridMap[gridKey].end(); it++)
                     {
+                        vec3 rv = P[i].r-P[*it].r ;
+                        float r = rv.length() ;
                         if(i == *it){}
-                        else
+                        else if ( 0 <= r && r <= H)
                         {
-                            f_viscosity +=  P[*it].m*(P[*it].v-P[i].v)/P[*it].density * wGradient2ViscosityKernel(P[i].r ,P[*it].r) ;
-                            f_pressure += P[*it].m*(2*K_GAS*P[*it].density)/(2*P[*it].density) * wGradientSpikyKernel(P[i].r ,P[*it].r) ;
-                            f_tension += P[*it].m * wGradientSpikyKernel(P[i].r,P[*it].r).length()*(P[i].r -P[*it].r);
+                            co++;
+                            f_viscosity +=  P[*it].m*(P[*it].v-P[i].v)/P[*it].density * wGradient2ViscosityKernel(P[i].r ,P[*it].r).length() ;
+                            f_pressure += P[*it].m*(P[*it].P+P[i].P)/(2*P[*it].density) * wGradientSpikyKernel(P[i].r ,P[*it].r) ;
+                            //Calculate
+                            f_tension += P[*it].m/P[*it].density * wGradient2SpikyKernel(P[i].r,P[*it].r);
+                            f_tension_norm += P[*it].m/P[*it].density * wGradientSpikyKernel(P[i].r,P[*it].r) ;
                         }
                     }
                 }
             }
         }
 
-        f_tension = f_tension * (K_TENSION /P[i].m);
-        f_viscosity = -1*f_viscosity;
-
-        total_a = (f_viscosity + f_pressure + f_tension  ) / WATER_DENSITY ;
-       // printVec3(f_tension,"Tension");
-      //  printf("A : %f %f %f \n",total_a.x,total_a.y,total_a.z);
-
-        // printf("index : %d acc = %.12f\n",i,f_viscosity.length());
-        // printf("Acc x = %.5f , y = %.5f ,z = %.5f \n",total_a.x,total_a.y,total_a.z);
-        P[i].v = P[i].v + total_a*dt/1000;
-        P[i].v.y += GRAVITY*dt/1000;
-        P[i].r+= P[i].v*dt/1000;
-
-        //Collision checking
-        if(P[i].r.y<= startY){
-            P[i].r.y= startY;
-            //P[i].v.y = 0;
-            P[i].v.y= -0.4f*P[i].v.y;
-        }
-        if(P[i].r.x<= startX){
-            P[i].r.x= startX;
-            P[i].v.x=-0.9f*P[i].v.x;
-        }
-        if(P[i].r.x>= startX+sizeX){
-            P[i].r.x= startX+sizeX;
-            P[i].v.x=-0.9f*P[i].v.x;
-        }
-        if(P[i].r.z<= startZ){
-            P[i].r.z= startZ;
-            P[i].v.z=-0.9f*P[i].v.z;
-        }
-        if(P[i].r.z>= startZ+sizeZ){
-            P[i].r.z= startZ+sizeZ;
-            P[i].v.z=-0.9f*P[i].v.z;
-        }
-        //printf("Pos x = %.5f , y = %.5f ,z = %.5f ",P[i].r.x,P[i].r.y,P[i].r.z);
+        // Calculate Total Force
+        if (f_tension_norm.length() > SURFACE_THRESHOLD )  (-K_TENSION * f_tension ) * f_tension_norm / (f_tension_norm.length() +0.0001f) ;
+        else f_tension = 0 ;
+        f_viscosity = f_viscosity;
+        f_pressure = -f_pressure ;
+       // printf("Part %d Neigh= %d \n",i,co);
+        total_a = (f_viscosity + f_tension   ) / P[i].density ;
+        //printVec3(f_viscosity,"V");
+       // printVec3(total_a,"Total");
+        // Update Position and Velocity
+       // P[i].v = P[i].v + total_a*dt/1000;
+        //P[i].v.y += GRAVITY*dt/1000;
+        dt=1;
+        P[i].prev_r = P[i].r ;
+        P[i].r += P[i].v*dt/1000 +(total_a+vec3(0.0f,GRAVITY,0.0f))*dt/1000*dt/1000;
+        P[i].v =  (P[i].r - P[i].prev_r )/dt*1000;
+        checkCollision(P[i]);
+       // printVec3(P[i].v,"Ve ");
+        //printf("Pos x = %.5f , y = %.5f ,z = %.5f \n",P[i].r.x,P[i].r.y,P[i].r.z);
     }
 
-    //for (int i = 0; i < )
 }
 
 static void display(void)
@@ -240,7 +337,6 @@ static void display(void)
 
     glPopMatrix();
     glutSwapBuffers();
-
 }
 
 
@@ -301,6 +397,10 @@ static void idle(void)
 //        }
 //        //while(1) {}
 //    }
+       /* test++;
+        if(test > 4){
+            while(1){}
+        }*/
 }
 
 const GLfloat light_ambient[]  = { 0.0f, 0.0f, 0.0f, 1.0f };
