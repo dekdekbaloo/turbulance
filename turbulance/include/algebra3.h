@@ -56,7 +56,7 @@ enum {RED, GREEN, BLUE};	    // colors
 //
 //	PI
 //
-//const float M_PI =  3.14159f;		// per CRC handbook, 14th. ed.
+const float M_PI =  3.14159f;		// per CRC handbook, 14th. ed.
 //const float M_PI_2 = (M_PI/2.0);				// PI/2
 //const float M2_PI = (M_PI*2.0);				// PI*2
 

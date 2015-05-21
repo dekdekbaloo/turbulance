@@ -12,10 +12,11 @@
  * using the + and - keys.
  */
 #define GLEW_STATIC
+#include <windows.h>
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <GL/glut.h>
-#include <windows.h>
+
 #include "include/Plane.h"
 #include "include/Kernel.h"
 #include <vector>
@@ -37,11 +38,12 @@
 #define REST_DENSITY 800.0f
 #define SURFACE_THRESHOLD 1.00f
 #define COLLIDE_CONSTANT 0.99f
-
+static bool pause=true;
 static float gridSize = 0.2f;
 static float GRAVITY = -9.8f;
-static int numBall = 700;
-static float startX = -0.5f;;
+//static int numBall = 100;
+static int numCube=8;
+static float startX = -1.5f;;
 static float sizeX = 3.0f;
 static float startY = -1.4f;
 static float sizeY = 100; //Not yet used
@@ -116,26 +118,20 @@ static void printVec3(vec3 a , const char *string)
 static void init(){
 
     // Create Particle
-    for(int i=0;i<numBall;i++){
-        int kx = rand()%40000 ;
-        int ky = rand()%20000 ;
-        int kz = rand()%40000 ;
+    for(int i=0;i<numCube;i++){
+        for(int j=0;j<numCube;j++){
+            for(int k=0;k<numCube;k++){
+                Particle part(vec3 (startX+0.2f*i,startY+0.2f*j,startZ+0.2f*k),1.0f);
+                P.push_back(part);
+            }
+        }
         //Particle part(vec3 (-1,5,1) ,1.0f);
-        Particle part(vec3 (-0.5+0.00005*kx,0.1+0.0003*ky,-5+0.00001*kz),1.0f);
 
-        //Particle part(vec3 (-2,0,-6),1) ;
-        part.v.x = rand()%100/1000.0 ;
-        part.v.y = rand()%100/1000.0 ;
-        part.v.z = rand()%100/1000.0 ;
-        part.v = vec3 (0,0,0);
-        vec3 newGridPos = part.r/gridSize;
-        newGridPos.x = (int)(newGridPos.x);
-        newGridPos.y = (int)(newGridPos.y);
-        newGridPos.z = (int)(newGridPos.z);
-        coord co(newGridPos.x,newGridPos.y,newGridPos.z);
-        part.gridPos = co;
 
-        P.push_back(part);
+
+
+
+
     }
 }
 
@@ -200,7 +196,7 @@ static void update(){
     int currTime=glutGet(GLUT_ELAPSED_TIME);
     dt=(currTime-lastTime);
     lastTime=currTime;
-
+    if(pause)return;
 //    gridMap.clear();
 //    for(int a = (int)(startX/gridSize); a < (int)((startX+sizeX)/gridSize); a++)
 //    {
@@ -331,10 +327,13 @@ static void display(void)
         for(int i=0;i<P.size();i++){
             P[i].draw();
         }
-    plane.draw();
-
-
+    //plane.draw();
+    glPushMatrix();
+    glTranslatef(startX+sizeX/2,startY+1.11,-5.0);
+    glScalef(sizeX*0.7,1.5,sizeZ*0.7);
+    glutWireCube(startX);
     glPopMatrix();
+
     glutSwapBuffers();
 
 }
@@ -342,6 +341,16 @@ static void display(void)
 
 static void key(unsigned char key, int x, int y)
 {
+    if(key=='p'){
+        pause=!pause;
+    }else if(key==' '){
+        if(pause)return;
+        int w=glutGet(GLUT_WINDOW_WIDTH);
+        int h=glutGet(GLUT_WINDOW_HEIGHT);
+        Particle p=Particle (vec3((1.0f*x/w-0.5f)*5,(-1.0f*y/h+0.5f)*5,-3),1.0f);
+        p.v=vec3 (0,0,-8);
+        P.push_back(p);
+    }
     glutPostRedisplay();
 }
 
@@ -426,7 +435,7 @@ int main(int argc, char *argv[])
     glutKeyboardFunc(key);
     glutIdleFunc(idle);
 
-    glClearColor(0,0,0,1);
+    glClearColor(1,1,1,1);
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
 
