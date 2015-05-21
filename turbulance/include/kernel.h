@@ -19,7 +19,7 @@ float wPoly6Kernel(vec3 ri, vec3 rj){
 	float hr_term = (H * H - r * r);
 	float div = 64.0 * PI * POW_H_9;
 	if ( 0 <= r && r <= H)
-        return 315.0f / div * 6 * r * hr_term * hr_term * hr_term ;
+        return 315.0f / div * hr_term * hr_term * hr_term ;
     else
         return 0.0f ;
 }

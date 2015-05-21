@@ -29,20 +29,20 @@
 
 
 // #define W_VISCOSITY_CONT 0.000894f
-#define W_VISCOSITY_CONT 1.80f
-#define K_GAS 0.082057f
-#define K_GAS_NEAR 0.1f
-#define K_TENSION 0.000004f
+#define W_VISCOSITY_CONT 0.894f
+#define K_GAS 8.314f
+
+#define K_TENSION 0.00001f
 #define GLEW_STATIC 50
 #define PI 3.141592653589
 #define NORM 20/(2*PI*H*H)
 #define NEARNORM 30/(2*PI*H*H)
-#define REST_DENSITY 98.9f
+#define REST_DENSITY 989.0f
 #define SURFACE_THRESHOLD 0.01f
 
 static float gridSize = 0.2f;
 static float GRAVITY = -9.8f ;
-static int numBall = 400;
+static int numBall = 200;
 static float startX = -0.5f;;
 static float sizeX = 1.0f;
 static float startY = -1.4f;
@@ -87,7 +87,7 @@ static void init(){
         int ky = rand()%200 ;
         int kz = rand()%500 ;
         //Particle part(vec3 (-1,5,1) ,1.0f);
-        Particle part(vec3 (0.5-0.01*kx,0.1-0.01*ky,-4-0.01*kz),1.0);
+        Particle part(vec3 (0.5-0.01*kx,0.1-0.01*ky,-4-0.01*kz),1);
 
         //Particle part(vec3 (-2,0,-6),1) ;
         part.v = vec3 (0,0,0);
@@ -124,7 +124,7 @@ void calculatePressure()
         //iterate over neighbor grid cell!
         for (size_t i = 0 ; i < P.size() ; i++){
 
-            float density = 100.0f;
+            float density = 989.0f;
             float nearDensity = 0;
             Particle &pi = P[i] ;
             int co = 0 ;
@@ -222,6 +222,7 @@ static void update(){
     int currTime=glutGet(GLUT_ELAPSED_TIME);
     dt=(currTime-lastTime);
     lastTime=currTime;
+    dt=5;
 
     gridMap.clear();
     for(int i = 0; i < P.size();i++)
@@ -243,7 +244,7 @@ static void update(){
         vec3  f_tension_norm(0.0f,0.0f,0.0f);
 
         //P[i].r += P[i].v*dt/300 ;
-
+        P[i].v += vec3(0.0f,GRAVITY,0.0f)*dt/1000;
         int co = 0 ;
         int gridX = P[i].gridPos.x;
         int gridY = P[i].gridPos.y;
@@ -287,20 +288,20 @@ static void update(){
         }
 
         // Calculate Total Force
-        if (f_tension_norm.length() > SURFACE_THRESHOLD ) f_tension = (-K_TENSION * f_tension ) * f_tension_norm / (f_tension_norm.length() +0.0001f) ;
+        if (f_tension_norm.length() > SURFACE_THRESHOLD )f_tension = (-K_TENSION * f_tension ) * f_tension_norm / (f_tension_norm.length() +0.0001f) ;
         else f_tension = 0 ;
         f_viscosity = f_viscosity;
         f_pressure = -f_pressure ;
        // printf("Part %d Neigh= %d \n",i,co);
-        total_a = (f_viscosity + f_tension   ) / P[i].density ;
-        printVec3(f_tension,"T");
+        total_a = (f_viscosity + f_tension +f_pressure  ) / P[i].density ;
+        //printVec3(f_tension,"T");
        // printVec3(total_a,"Total");
         // Update Position and Velocity
        // P[i].v = P[i].v + total_a*dt/1000;
         //P[i].v.y += GRAVITY*dt/1000;
-        //dt=1;
+
         P[i].prev_r = P[i].r ;
-        P[i].r += P[i].v*dt/1000 +(total_a+vec3(0.0f,GRAVITY,0.0f))*dt/1000*dt/1000;
+        P[i].r += P[i].v*dt/1000 +(total_a)*dt/1000*dt/1000;
         P[i].v =  (P[i].r - P[i].prev_r )/dt*1000;
         checkCollision(P[i]);
        // printVec3(P[i].v,"Ve ");
