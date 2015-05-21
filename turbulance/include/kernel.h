@@ -5,8 +5,8 @@
 #include <cmath>
 #include <stdio.h>
 
-#define REST_DENSITY 10000.0f // 1000 kg/m^3
-#define H 0.8f // smoothing radius
+#define REST_DENSITY 1000.0f // 1000 kg/m^3
+#define H 0.5f // smoothing radius
 #define POW_H_9 (float)(H*H*H*H*H*H*H*H*H) // h^9
 #define POW_H_6 (float)(H*H*H*H*H*H) // h^6
 #define POW_H_3 (float)(H*H*H) // h^3
